@@ -36,42 +36,47 @@
 
 
 class CMeasure {
- private:
-  std::unordered_map< std::string, double > timeStor;
+private:
+    std::unordered_map<std::string, double> timeStor;
 
-  // this is intended for saving starting clock.
-  std::unordered_map< std::string, double > timeTmpStor;
+    // this is intended for saving starting clock.
+    std::unordered_map<std::string, double> timeTmpStor;
 
-  // true -> recording start
-  // false -> recording end.
-  std::unordered_map< std::string, bool > inputChk;
+    // true -> recording start
+    // false -> recording end.
+    std::unordered_map<std::string, bool> inputChk;
 
- public:
-  CMeasure() {}
+public:
+    CMeasure() {}
 
-  double wbegin;
+    double wbegin;
 
-  clock_t cbegin;
-  std::vector< std::string > tasks;
-  std::vector< double > welapsed_secs, celapsed_secs;
+    clock_t cbegin;
+    std::vector<std::string> tasks;
+    std::vector<double> welapsed_secs, celapsed_secs;
 
-  // functions
-  void process_mem_usage();
-  void start_clock();
-  void stop_clock(std::string task);
-  void print_clock();
+    // functions
+    void process_mem_usage();
 
-  void printMemoryUsage(void);
+    void start_clock();
 
-  // print only function
-  void print_only(std::string task);
+    void stop_clock(std::string task);
 
-  // accumulation clock functions
-  void accm_clock_start(std::string task);
-  void accm_clock_end(std::string task);
-  void accm_clock_print(std::string task);
+    void print_clock();
+
+    void printMemoryUsage(void);
+
+    // print only function
+    void print_only(std::string task);
+
+    // accumulation clock functions
+    void accm_clock_start(std::string task);
+
+    void accm_clock_end(std::string task);
+
+    void accm_clock_print(std::string task);
 };
 
-const char* fileNameTrim(const char* fileName);
+const char *fileNameTrim(const char *fileName);
 
 #endif

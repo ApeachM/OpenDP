@@ -1,22 +1,22 @@
 #include "circuit.h"
-      
-opendp::circuit::circuit() 
-: GROUP_IGNORE(false),
-        num_fixed_nodes(0),
-        num_cpu(1),
-        DEFVersion(""),
-        DEFDelimiter("/"),
-        DEFBusCharacters("[]"),
-        design_name(""),
-        DEFdist2Microns(0),
-        sum_displacement(0.0),
-        displacement(400.0),
-        max_disp_const(0.0),
-        max_utilization(100.0),
-        wsite(0),
-        max_cell_height(1),
-        rowHeight(0.0f), 
-        fileOut(0) {
+
+opendp::circuit::circuit()
+        : GROUP_IGNORE(false),
+          num_fixed_nodes(0),
+          num_cpu(1),
+          DEFVersion(""),
+          DEFDelimiter("/"),
+          DEFBusCharacters("[]"),
+          design_name(""),
+          DEFdist2Microns(0),
+          sum_displacement(0.0),
+          displacement(400.0),
+          max_disp_const(0.0),
+          max_utilization(100.0),
+          wsite(0),
+          max_cell_height(1),
+          rowHeight(0.0f),
+          fileOut(0) {
 
     macros.reserve(128);
     layers.reserve(32);
