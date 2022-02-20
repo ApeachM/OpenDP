@@ -103,6 +103,6 @@ add_dependencies( opendplib lef )
 # Install  
 ############################################################
 
-install(FILES ${OPENDP_HEADER} DESTINATION include)
-install(TARGETS opendp DESTINATION bin)
-install(TARGETS opendplib DESTINATION lib)
+#install(FILES ${OPENDP_HEADER} DESTINATION include)
+#install(TARGETS opendp DESTINATION bin)
+#install(TARGETS opendplib DESTINATION lib)

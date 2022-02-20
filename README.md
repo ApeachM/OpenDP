@@ -52,3 +52,10 @@
 - Fence region and multi-height legalization supports. (ICCAD 2017 Contest benchmarks)
 - Fragmented ROW supports.
 - Macro orientations supports.
+
+
+### For Debugging with Clion
+- Install zlib, bison
+- Erase the last 3 lines in Cmake file
+- Decompress benchmarks
+- Make temporary arguments in main function
