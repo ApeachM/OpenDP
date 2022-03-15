@@ -21,6 +21,9 @@ set(LEFLIB_HOME
   ${PROJECT_SOURCE_DIR}/module/lef/5.8-p027
 )
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
+
 add_subdirectory(${DEFLIB_HOME})
 add_subdirectory(${LEFLIB_HOME})
 
