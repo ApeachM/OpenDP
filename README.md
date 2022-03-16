@@ -59,3 +59,9 @@
 - Erase the last 3 lines in Cmake file
 - Decompress benchmarks
 - Make temporary arguments in main function
+
+### Branch Explanation
+- This branch is for debugging 1.
+- The debugging 1 is for knowing 
+  1. Check ratio of non group cell # and group cell #
+  2. Check whether any region(fence region) moves after DP
