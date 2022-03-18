@@ -11,7 +11,7 @@ import subprocess as sp
 from datetime import datetime
 
 dirpos = "../bench/benchmarks"
-binaryName = "./opendp"
+binaryName = "../build/opendp"
 outpos = "../output"
 logpos = "../logdir"
 numThreads = 1
