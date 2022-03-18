@@ -287,6 +287,7 @@ OPENDP_NAMESPACE_OPEN
         bool inGroup;
         bool hold;
         unsigned region;
+        unsigned movedRegion = UINT_MAX;
         OPENDP_HASH_MAP<std::string, unsigned> ports; /* <port name, index to the pin> */
         std::string cellorient;
         std::string group;
@@ -532,6 +533,7 @@ OPENDP_NAMESPACE_OPEN
         std::vector<group> groups; /* group list from .def */
 
         std::vector<std::pair<double, cell *> > large_cell_stor;
+        int regionMovedCell = 0;
 
         /* locateOrCreate helper functions - parser_helper.cpp */
         macro *locateOrCreateMacro(const std::string &macroName);
@@ -755,6 +757,10 @@ OPENDP_NAMESPACE_OPEN
         void placed_check(std::ofstream &log);
 
         void overlap_check(std::ofstream &os);
+
+        bool check_FR_legality(cell *theCell);
+
+        bool check_FR_legality();
     };
 
 // parser_helper.cpp

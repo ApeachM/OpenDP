@@ -136,6 +136,7 @@ void circuit::simple_placement(CMeasure &measure) {
     measure.stop_clock("non Group cell placement");
     cout << " non_group_cell_placement done .. " << endl;
     cout << " - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
+//    check_FR_legality();
     return;
 }
 
@@ -241,7 +242,6 @@ void circuit::group_cell_placement(string mode, string mode2) {
             cell_list.push_back(theCell);
         }
         sort(cell_list.begin(), cell_list.end(), SortUpOrder);
-        // sort( cell_list.begin(), cell_list.end(), SortByDense);
         // place multi-deck cells on each group region
         for (int j = 0; j < cell_list.size(); j++) {
             cell *theCell = cell_list[j];
@@ -256,11 +256,7 @@ void circuit::group_cell_placement(string mode, string mode2) {
                 }
             }
         }
-        // cout << "Group util : " << theGroup->util << endl;
         if (multi_pass == true) {
-            //				cout << " Group : " << theGroup->name <<
-            //" multi-deck placement done - ";
-            // place single-deck cells on each group region
             for (int j = 0; j < cell_list.size(); j++) {
                 cell *theCell = cell_list[j];
                 if (theCell->isFixed || theCell->isPlaced) continue;
@@ -269,15 +265,11 @@ void circuit::group_cell_placement(string mode, string mode2) {
                 if (theMacro->isMulti == false) {
                     single_pass = map_move(theCell, mode);
                     if (single_pass == false) {
-                        //						cout << "map_move fail" <<
-                        //endl;
                         break;
                     }
                 }
             }
         }
-        //			if( single_pass == true )
-        //				cout << "single-deck placement done" << endl;
 
         if (single_pass == false || multi_pass == false) {
             // Erase group cells
@@ -285,7 +277,6 @@ void circuit::group_cell_placement(string mode, string mode2) {
                 cell *theCell = theGroup->siblings[j];
                 erase_pixel(theCell);
             }
-            //				cout << "erase done" << endl;
 
             // determine brick placement by utilization
             if (theGroup->util > 0.95) {

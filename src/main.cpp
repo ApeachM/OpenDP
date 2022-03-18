@@ -51,34 +51,6 @@ using std::cerr;
 
 int main(int argc, char *argv[]) {
     //////////////////////////////////////////////////////////////////////////
-    // arguments for debugging
-    argc = 13;
-    argv[0] = "../build/opendp";
-    argv[1] = "-lef";
-    argv[2] = "../bench/benchmarks/pci_bridge32_b_md1/tech.lef";
-    argv[3] = "-lef";
-    argv[4] = "../bench/benchmarks/pci_bridge32_b_md1/cells_modified.lef";
-    argv[5] = "-def";
-    argv[6] = "../bench/benchmarks/pci_bridge32_b_md1/placed.def";
-    argv[7] = "-placement_constraints";
-    argv[8] = "../bench/benchmarks/pci_bridge32_b_md1/placement.constraints";
-    argv[9] = "-cpu";
-    argv[10] = "1";
-    argv[11] = "-output_def";
-    argv[12] = "../output/pci_bridge32_b_md1_2022-02-18_13:07:04.def";
-    // check arguments
-    for (int i = 0; i < 3; ++i) {
-        cout << endl;
-    }
-    for (int i = 0; i < argc; ++i) {
-        cout << i << endl;
-        cout << argv[i] << endl;
-        cout << endl;
-    }
-    for (int i = 0; i < 3; ++i) {
-        cout << endl;
-    }
-    //////////////////////////////////////////////////////////////////////////
 
     cout << "===================================================================="
             "======="

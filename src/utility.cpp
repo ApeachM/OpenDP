@@ -450,6 +450,86 @@ int circuit::dist_for_rect(cell *theCell, rect *theRect, string mode) {
     return temp_y + temp_x;
 }
 
+bool circuit::check_FR_legality() {
+    // This function check the FR(fence region) legality for one total circuit, not one cell.
+    // output: return true if all regions are assigned correctly,
+    //         and there's no group cells, which is out of FR.
+    //         If not, this will return false.
+    bool legality = true;
+
+    // Check whether any group cell is out of fence region.
+    for (int i = 0; i < cells.size(); ++i) {
+        cell *theCell = &cells[i];
+        theCell->movedRegion = UINT_MAX;
+        if (!theCell->inGroup) continue;
+        // Find the group which the cell is in
+        string groupName = theCell->group;
+        unsigned groupNum = group2id[groupName];
+        group theGroup = groups[groupNum];
+
+        // Find the region which the cell is in
+        rect *theAssignedRegion = &theGroup.regions[theCell->region];
+
+        // Check the cell is out of the assigned region
+        if (check_inside(theCell, theAssignedRegion, "coord")) {
+            // then, the cell is in the assigned region
+            theCell->movedRegion = theCell->region;
+        } else if (theCell->x_coord == theAssignedRegion->xUR || theCell->x_coord == theAssignedRegion->xLL ||
+                   theCell->y_coord == theAssignedRegion->yUR || theCell->y_coord == theAssignedRegion->yLL) {
+            // exception handling.
+            // In this case, also the cell doesn't change the region
+            theCell->movedRegion = theCell->region;
+        } else {
+            // Here, the cell popped up from the previous(assigned) region
+            for (int j = 0; j < theGroup.regions.size(); ++j) {
+                // check where the cell is in which region
+                if (j == theCell->region) continue;
+                rect *theRegion = &theGroup.regions[j];
+                if (check_inside(theCell, theRegion, "coord")) {
+                    theCell->movedRegion = j;
+#ifdef DEBUG
+                    cout << endl;
+                    cout << "theCell->init_x_coord: " << theCell->init_x_coord << endl;
+                    cout << "theCell->init_y_coord: " << theCell->init_y_coord << endl << endl;
+                    cout << "theCell->x_coord: " << theCell->x_coord << endl;
+                    cout << "theCell->y_coord: " << theCell->y_coord << endl << endl;
+
+                    cout << "The previous region" << endl;
+                    cout << "x: (" << theAssignedRegion->xLL << ", " << theAssignedRegion->xUR << ")" << endl;
+                    cout << "y: (" << theAssignedRegion->yLL << ", " << theAssignedRegion->yUR << ")" << endl << endl;
+
+                    cout << "The moved region" << endl;
+                    cout << "x: (" << theRegion->xLL << ", " << theRegion->xUR << ")" << endl;
+                    cout << "y: (" << theRegion->yLL << ", " << theRegion->yUR << ")" << endl << endl;
+                    cout << endl;
+#endif
+                }
+            }
+            regionMovedCell += 1;
+            legality = false;
+        }
+
+        if (theCell->inGroup && theCell->movedRegion == UINT_MAX) {
+            // if theCell->movedRegion = UINT_MAX, and theCell->inGroup == true,
+            // then the cell is popped up out of the fence region
+            legality = false;
+#ifdef DEBUG
+            cout << "The cell is out of the fence region" << endl;
+            cout << endl;
+            cout << "theCell->init_x_coord: " << theCell->init_x_coord << endl;
+            cout << "theCell->init_y_coord: " << theCell->init_y_coord << endl << endl;
+            cout << "theCell->x_coord: " << theCell->x_coord << endl;
+            cout << "theCell->y_coord: " << theCell->y_coord << endl << endl;
+
+            cout << "The previous region" << endl;
+            cout << "x: (" << theAssignedRegion->xLL << ", " << theAssignedRegion->xUR << ")" << endl;
+            cout << "y: (" << theAssignedRegion->yLL << ", " << theAssignedRegion->yUR << ")" << endl << endl;
+#endif
+        }
+    }
+    return legality;
+}
+
 bool circuit::check_overlap(rect cell, rect box) {
     if (box.xLL >= cell.xUR || box.xUR <= cell.xLL) return false;
     if (box.yLL >= cell.yUR || box.yUR <= cell.yLL) return false;
@@ -875,6 +955,11 @@ bool circuit::map_move(cell *theCell, int x, int y) {
             // cout << " near found!! " << endl;
         } else
             paint_pixel(theCell, myPixel.second->x_pos, myPixel.second->y_pos);
+#ifdef DEBUG
+        if (phase == 2) {
+            check_FR_legality(theCell);
+        }
+#endif
         return true;
     } else {
 #ifdef DEBUG
