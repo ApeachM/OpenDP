@@ -755,6 +755,8 @@ OPENDP_NAMESPACE_OPEN
         void placed_check(std::ofstream &log);
 
         void overlap_check(std::ofstream &os);
+
+        void check_ratio_of_area();
     };
 
 // parser_helper.cpp

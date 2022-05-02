@@ -36,6 +36,7 @@
 /////////////////////////////////////////////////////////////////////////////////
 
 #include "circuit.h"
+#include <algorithm>
 
 #define _DEBUG
 #define SOFT_IGNORE true
@@ -58,7 +59,44 @@ using std::vector;
 using std::make_pair;
 using std::to_string;
 using std::string;
+using std::find;
 
+int findIndex(const vector<double> & vec, double item){
+    auto ret = find(vec.begin(), vec.end(), item);
+    if(ret != vec.end())
+        return ret - vec.begin();
+    return -1;
+}
+
+
+void circuit::check_ratio_of_area() {
+    // check the ratio of cell area
+    vector<double> area_values;
+    vector<int> value_count;
+    for (int i = 0; i < cells.size(); ++i) {
+        cell *theCell = &cells[i];
+        double cell_area = theCell->height * theCell->width;
+
+        // check this area is in `area_values`
+        if (find(area_values.begin(), area_values.end(), cell_area) == area_values.end()) {
+            area_values.push_back(cell_area);
+            value_count.push_back(0);
+        }
+
+        int idx = findIndex(area_values, cell_area);
+        value_count[idx] += 1;
+    }
+
+    cout.precision(3);
+    cout << endl;
+    for (int i = 0; i < value_count.size(); ++i) {
+        double area = area_values[i];
+        int value_number = value_count[i];
+        cout << "Ratio: " << double(value_number) / double(cells.size()) * 100 << " %  ";
+        cout << "Area: " << area << "  #: " << value_number << endl;
+    }
+
+}
 
 void circuit::power_mapping() {
     for (int i = 0; i < rows.size(); i++) {
