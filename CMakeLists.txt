@@ -28,17 +28,17 @@ set( OPENDP_SRC
   src/assign.cpp
   src/check_legal.cpp
   src/main.cpp
-  src/circuit.cpp
+#  src/circuit.cpp
   src/mymeasure.cpp
   src/parser.cpp
   src/parser_helper.cpp
   src/place.cpp
   src/utility.cpp
 
-  src/defParser.cpp
-  src/lefParser.cpp
+#  src/defParser.cpp
+#  src/lefParser.cpp
 
-  src/circuitParser.cpp
+#  src/circuitParser.cpp
 )
 
 set ( OPENDP_HEADER

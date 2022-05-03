@@ -40,19 +40,6 @@
 #define _DEBUG
 #define _DEBUG2
 
-using opendp::circuit;
-using opendp::cell;
-using opendp::row;
-using opendp::pixel;
-using opendp::rect;
-
-using std::max;
-using std::min;
-using std::pair;
-using std::cout;
-using std::endl;
-using std::cerr;
-
 // Fixed cell handle on parser ( no need to use this function during placement)
 // //
 void circuit::fixed_cell_assign() {
@@ -260,13 +247,9 @@ void circuit::cell_y_align(cell *theCell) {
             diamond_search(theCell, theCell->init_x_coord, theCell->init_y_coord);
     theCell->y_pos = myPixel.second->y_pos;
     // top power align --> cell orient ( flip )
-    if (max_cell_height > 1) {
-        if (cell_y_size % 2 == 1 &&
+    if (cell_y_size % 2 == 1 &&
             rows[myPixel.second->y_pos].top_power != theMacro->top_power)
-            theCell->cellorient = "FS";
-    } else {
-        theCell->cellorient = rows[myPixel.second->y_pos].siteorient;
-    }
+        theCell->cellorient = "FS";
 
     return;
 }
@@ -430,16 +413,12 @@ bool circuit::paint_pixel(cell *theCell, int x_pos, int y_pos) {
             }
         }
     }
-
-    if (max_cell_height > 1) {
-        if (y_step % 2 == 1) {
-            if (rows[y_pos].top_power != theMacro->top_power)
-                theCell->cellorient = "FS";
-            else
-                theCell->cellorient = "N";
-        }
-    } else {
-        theCell->cellorient = rows[y_pos].siteorient;
+    if (y_step % 2 == 1) {
+        if (rows[y_pos].top_power != theMacro->top_power)
+            theCell->cellorient = "FS";
+        else
+            theCell->cellorient = "N";
     }
     return true;
 }
+

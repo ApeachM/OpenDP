@@ -1,67 +1,43 @@
-/////////////////////////////////////////////////////////////////////////////
-// Authors: SangGi Do(sanggido@unist.ac.kr), Mingyu Woo(mwoo@eng.ucsd.edu)
-//          (respective Ph.D. advisors: Seokhyeong Kang, Andrew B. Kahng)
-//
-//          Original parsing structure was made by Myung-Chul Kim (IBM).
-//
-// BSD 3-Clause License
-//
-// Copyright (c) 2018, SangGi Do and Mingyu Woo
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-//
-// * Redistributions of source code must retain the above copyright notice, this
-//   list of conditions and the following disclaimer.
-//
-// * Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the following disclaimer in the documentation
-//   and/or other materials provided with the distribution.
-//
-// * Neither the name of the copyright holder nor the names of its
-//   contributors may be used to endorse or promote products derived from
-//   this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ///////////////////////////////////////////////////////////////////////////////
+//// Authors: SangGi Do(sanggido@unist.ac.kr), Mingyu Woo(mwoo@eng.ucsd.edu)
+////          (respective Ph.D. advisors: Seokhyeong Kang, Andrew B. Kahng)
+////
+////          Original parsing structure was made by Myung-Chul Kim (IBM).
+////
+//// BSD 3-Clause License
+////
+//// Copyright (c) 2018, SangGi Do and Mingyu Woo
+//// All rights reserved.
+////
+//// Redistribution and use in source and binary forms, with or without
+//// modification, are permitted provided that the following conditions are met:
+////
+//// * Redistributions of source code must retain the above copyright notice, this
+////   list of conditions and the following disclaimer.
+////
+//// * Redistributions in binary form must reproduce the above copyright notice,
+////   this list of conditions and the following disclaimer in the documentation
+////   and/or other materials provided with the distribution.
+////
+//// * Neither the name of the copyright holder nor the names of its
+////   contributors may be used to endorse or promote products derived from
+////   this software without specific prior written permission.
+////
+//// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+//// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+//// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+//// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+//// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+//// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+//// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+//// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+/////////////////////////////////////////////////////////////////////////////////
 
 #include "circuit.h"
-#include <iomanip>
 
 #define _DEBUG
-
-using opendp::circuit;
-using opendp::cell;
-using opendp::row;
-using opendp::pixel;
-using opendp::rect;
-
-using std::max;
-using std::min;
-using std::pair;
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::ifstream;
-using std::ofstream;
-using std::vector;
-using std::make_pair;
-using std::to_string;
-using std::string;
-using std::fixed;
-using std::setprecision;
-using std::numeric_limits;
-
 
 const char *DEFCommentChar = "#";
 const char *DEFLineEndingChar = ";";
@@ -74,24 +50,20 @@ inline bool operator<(const row &a, const row &b) {
 }
 
 void circuit::print_usage() {
+
     cout << "Incorrect arguments. exiting .." << endl;
-    cout << "Usage1 : opendp -lef tech.lef -lef cell.lef -def "
-            "placed.def -cpu 4 -placement_constraints placement.constraints "
-            "-output_def lg.def"
-         << endl;
-    cout << "Usage2 : opendp -lef design.lef -def placed.def -cpu 4 "
-            "-placement_constraints placement.constraints -output_def lg.def"
-         << endl;
+    cout
+            << "Usage1 : cada045 -tech_lef tech.lef -cell_lef cell.lef -input_def placed.def -cpu 4 -placement_constraints placement.constraints -output_def lg.def"
+            << endl;
+    cout
+            << "Usage2 : cada045 -lef design.lef -input_def placed.def -cpu 4 -placement_constraints placement.constraints -output_def lg.def"
+            << endl;
 
     return;
 }
 
 void circuit::read_files(int argc, char *argv[]) {
-
-    vector<string> lefStor;
-    string defLoc = "";
-
-    char *cpu = NULL, *constraints = NULL, *out_def = NULL, *size = NULL;
+    char *tech = NULL, *lef = NULL, *cell_lef = NULL, *in_def = NULL, *cpu = NULL, *constraints = NULL, *out_def = NULL, *size = NULL;
 
     if (argc < 5) {
         print_usage();
@@ -100,10 +72,14 @@ void circuit::read_files(int argc, char *argv[]) {
 
     for (int i = 1; i < argc; i++) {
         if (i + 1 != argc) {
-            if (strncmp(argv[i], "-lef", 4) == 0)
-                lefStor.push_back(argv[++i]);
-            else if (strncmp(argv[i], "-def", 4) == 0)
-                defLoc = argv[++i];
+            if (strncmp(argv[i], "-tech_lef", 9) == 0)
+                tech = argv[++i];
+            else if (strncmp(argv[i], "-cell_lef", 9) == 0)
+                cell_lef = argv[++i];
+            else if (strncmp(argv[i], "-lef", 4) == 0)
+                lef = argv[++i];
+            else if (strncmp(argv[i], "-input_def", 10) == 0)
+                in_def = argv[++i];
             else if (strncmp(argv[i], "-cpu", 4) == 0)
                 cpu = argv[++i];
             else if (strncmp(argv[i], "-placement_constraints", 22) == 0)
@@ -115,32 +91,43 @@ void circuit::read_files(int argc, char *argv[]) {
         }
     }
 
-    if (lefStor.size() == 0 || defLoc == "") {
+    bool input_fail = false;
+
+    if ((cell_lef == NULL || tech == NULL) && lef == NULL)
+        input_fail == true;
+    else if (in_def == NULL)
+        input_fail == true;
+
+
+    if (input_fail == true) {
         print_usage();
         exit(1);
     }
 
     string tech_str, cell_lef_str, lef_str;
     string constraints_str;
+    size_t lef_found, def_found;
 
-    // Below should be modified!!
-    /*
-    if( lefStor.size() == 1 ) {
-      read_lef(lefStor[0]);
+    if (lef != NULL) {
+        lef_str = lef;
+        lef_found = lef_str.find_last_of("/\\");
+        read_lef(lef_str);
+
+    } else {
+        tech_str = tech;
+        cell_lef_str = cell_lef;
+        read_tech_lef(tech_str);
+        read_cell_lef(cell_lef_str);
+        lef_found = tech_str.find_last_of("/\\");
+
     }
-    else {
-      read_tech_lef(lefStor[0]);
-      read_cell_lef(lefStor[1]);
-    }
-    */
+    string in_def_str = in_def;
+    if (constraints != NULL)
+        constraints_str = constraints;
 
-    ReadLef(lefStor);
-
-    if (constraints != NULL) constraints_str = constraints;
-
-    in_def_name = defLoc;
-    size_t def_found = defLoc.find_last_of("/\\");
-    string dir_bench = defLoc.substr(0, def_found);
+    in_def_name = in_def_str;
+    def_found = in_def_str.find_last_of("/\\");
+    string dir_bench = in_def_str.substr(0, def_found);
     string dir = dir_bench.substr(0, dir_bench.find_last_of("/\\"));
     string bench = dir_bench.substr(dir_bench.find_last_of("/\\") + 1);
     benchmark = bench;
@@ -151,34 +138,30 @@ void circuit::read_files(int argc, char *argv[]) {
         out_def_name = out_def;
 
     cout << endl;
-    cout << "-------------------- INPUT FILES ----------------------------------"
-         << endl;
+    cout << "-------------------- INPUT FILES ----------------------------------" << endl;
     cout << " benchmark name    : " << bench << endl;
     cout << " directory         : " << dir << endl;
-
-    for (auto &curLefLoc: lefStor) {
-        cout << " lef               : " << curLefLoc << endl;
+    if (lef != NULL) {
+        cout << " lef               : " << lef_str.substr(lef_found + 1) << endl;
+    } else {
+        cout << " tech_lef          : " << tech_str.substr(lef_found + 1) << endl;
+        cout << " cell_lef          : " << cell_lef_str.substr(lef_found + 1) << endl;
     }
-    cout << " def               : " << defLoc << endl;
-
+    cout << " def               : " << in_def_str.substr(def_found + 1) << endl;
     if (constraints != NULL)
-        cout << " constraints       : " << constraints_str << endl;
-    cout << "-------------------------------------------------------------------"
-         << endl;
+        cout << " constraints       : " << constraints_str.substr(lef_found + 1) << endl;
+    cout << "-------------------------------------------------------------------" << endl;
 
     // read_def shuld after read_lef
-//  read_def(defLoc, INIT);
-
-    ReadDef(defLoc);
-//  exit(1);
-
+    read_def(in_def_str, INIT);
     if (size != NULL) {
         string size_file = size;
         read_def_size(size_file);
     }
     power_mapping();
 
-    if (constraints != NULL) read_constraints(constraints_str);
+    if (constraints != NULL)
+        read_constraints(constraints_str);
 
     // summary of benchmark
     calc_design_area_stats();
@@ -210,38 +193,15 @@ void circuit::read_files(int argc, char *argv[]) {
         }
     }
 
-    // Fragmented Row Handling
-    for (auto &curFragRow: prevrows) {
-        int x_start = IntConvert((1.0 * curFragRow.origX - core.xLL) / wsite);
-        int y_start = IntConvert((1.0 * curFragRow.origY - core.yLL) / rowHeight);
-
-        int x_end = x_start + curFragRow.numSites;
-        int y_end = y_start + 1;
-
-//    cout << "x_start: " << x_start << endl;
-//    cout << "y_start: " << y_start << endl;
-//    cout << "x_end: " << x_end << endl;
-//    cout << "y_end: " << y_end << endl;
-        for (int i = x_start; i < x_end; i++) {
-            for (int j = y_start; j < y_end; j++) {
-                grid[j][i].isValid = true;
-            }
+    for (int i = 0; i < rows.size(); i++) {
+        row *myRow = &rows[i];
+        int col_size = myRow->numSites;
+        for (int j = 0; j < col_size; j++) {
+            int y_pos = myRow->origY / rowHeight;
+            int x_pos = j + myRow->origX / wsite;
+            grid[y_pos][x_pos].isValid = true;
         }
     }
-
-    /*
-    for(int i = 0; i < rows.size(); i++) {
-      // original rows : Fragmented ROWS
-      row* myRow = &rows[i];
-
-      int col_size = myRow->numSites;
-      for(int j = 0; j < col_size; j++) {
-        int y_pos = (myRow->origY-core.yLL) / rowHeight;
-        int x_pos = j + (myRow->origX-core.xLL) / wsite;
-        grid[y_pos][x_pos].isValid = true;
-      }
-    }
-    */
 
     // fixed cell marking
     fixed_cell_assign();
@@ -256,25 +216,17 @@ void circuit::read_files(int argc, char *argv[]) {
 
 void circuit::calc_design_area_stats() {
     num_fixed_nodes = 0;
-
-    // total_mArea : total movable cell area that need to be placed
-    // total_fArea : total fixed cell area.
-    // designArea : total available place-able area.
-    //
     total_mArea = total_fArea = designArea = 0.0;
-    for (vector<cell>::iterator theCell = cells.begin(); theCell != cells.end();
-         ++theCell) {
+    for (vector<cell>::iterator theCell = cells.begin(); theCell != cells.end(); ++theCell) {
         if (theCell->isFixed) {
             total_fArea += theCell->width * theCell->height;
             num_fixed_nodes++;
         } else
             total_mArea += theCell->width * theCell->height;
     }
-    for (vector<row>::iterator theRow = rows.begin(); theRow != rows.end();
-         ++theRow)
-        designArea += theRow->stepX * theRow->numSites *
-                      sites[theRow->site].height *
-                      static_cast< double >(DEFdist2Microns);
+    for (vector<row>::iterator theRow = rows.begin(); theRow != rows.end(); ++theRow)
+        designArea +=
+                theRow->stepX * theRow->numSites * sites[theRow->site].height * static_cast<double>(LEFdist2Microns);
 
     unsigned multi_num = 0;
     for (int i = 0; i < cells.size(); i++) {
@@ -288,21 +240,16 @@ void circuit::calc_design_area_stats() {
     for (int i = 0; i < cells.size(); i++) {
         cell *theCell = &cells[i];
         macro *theMacro = &macros[theCell->type];
-        if (theCell->isFixed == false &&
-            theMacro->isMulti == true &&
-            theMacro->type == "CORE") {
-            if (max_cell_height <
-                static_cast< int >(theMacro->height * DEFdist2Microns / rowHeight +
-                                   0.5))
-                max_cell_height = static_cast< int >(
-                        theMacro->height * DEFdist2Microns / rowHeight + 0.5);
+        if (theMacro->isMulti == true && theMacro->type == "CORE") {
+            if (max_cell_height < static_cast<int>(theMacro->height * LEFdist2Microns / rowHeight + 0.5 ))
+                max_cell_height = static_cast<int>(theMacro->height * LEFdist2Microns / rowHeight + 0.5 );
         }
     }
 
+
     design_util = total_mArea / (designArea - total_fArea);
 
-    cout << "-------------------- DESIGN ANALYSIS ------------------------------"
-         << endl;
+    cout << "-------------------- DESIGN ANALYSIS ------------------------------" << endl;
     cout << "  total cells              : " << cells.size() << endl;
     cout << "  multi cells              : " << multi_num << endl;
     cout << "  fixed cells              : " << num_fixed_nodes << endl;
@@ -310,7 +257,8 @@ void circuit::calc_design_area_stats() {
     cout << "  design area              : " << designArea << endl;
     cout << "  total f_area             : " << total_fArea << endl;
     cout << "  total m_area             : " << total_mArea << endl;
-    cout << "  design util              : " << design_util * 100.00 << endl;
+    if (designArea - total_fArea > 1.0e-5)
+        cout << "  design util              : " << total_mArea / (designArea - total_fArea) << endl;
     cout << "  num rows                 : " << rows.size() << endl;
     cout << "  row height               : " << rowHeight << endl;
     if (max_cell_height > 1)
@@ -319,35 +267,24 @@ void circuit::calc_design_area_stats() {
         cout << "  max disp const           : " << max_disp_const << endl;
     if (groups.size() > 0)
         cout << "  group num                : " << groups.size() << endl;
-    cout << "-------------------------------------------------------------------"
-         << endl;
-
-    //
-    // design_utilization error handling.
-    //
-    if (design_util >= 1.001) {
-        cout << "ERROR:  Utilization exceeds 100%. ("
-             << fixed << setprecision(2) << design_util * 100.00 << "%)! ";
-        cout << "        Please double check your input files!" << endl;
-        exit(1);
-    }
+    cout << "-------------------------------------------------------------------" << endl;
 
     return;
 }
 
 void circuit::read_constraints(const string &input) {
-    //    cout << " .constraints file : " << input << endl;
+//    cout << " .constraints file : " << input << endl;
     ifstream dot_constraints(input.c_str());
     if (!dot_constraints.good()) {
-        cerr << "read_constraints:: cannot open '" << input << "' for reading"
-             << endl;
+        cerr << "read_constraints:: cannot open '" << input << "' for reading" << endl;
     }
 
     string context;
 
     while (!dot_constraints.eof()) {
         dot_constraints >> context;
-        if (dot_constraints.eof()) break;
+        if (dot_constraints.eof())
+            break;
         if (strncmp(context.c_str(), "maximum_utilization", 19) == 0) {
             string temp = context.substr(0, context.find_last_of("%"));
             string max_util = temp.substr(temp.find_last_of("=") + 1);
@@ -356,7 +293,9 @@ void circuit::read_constraints(const string &input) {
             string temp = context.substr(0, context.find_last_of("rows"));
             string max_move = temp.substr(temp.find_last_of("=") + 1);
             displacement = atoi(max_move.c_str()) * 20;
+            //cout << "disp : " << displacement << endl;
             max_disp_const = atoi(max_move.c_str());
+
         } else {
 #ifdef DEBUG
             cerr << "read_constraints:: unsupported keyword " << endl;
@@ -364,7 +303,8 @@ void circuit::read_constraints(const string &input) {
         }
     }
 
-    if (max_disp_const == 0.0) max_disp_const = rows.size();
+    if (max_disp_const == 0.0)
+        max_disp_const = rows.size();
 
     dot_constraints.close();
     return;
@@ -381,7 +321,8 @@ void circuit::read_def(const string &input, bool mode) {
     while (!dot_def.eof()) {
         get_next_token(dot_def, tokens[0], DEFCommentChar);
 
-        if (tokens[0] == DEFLineEndingChar) continue;
+        if (tokens[0] == DEFLineEndingChar)
+            continue;
 
         if (tokens[0] == "VERSION") {
             get_next_token(dot_def, tokens[0], DEFCommentChar);
@@ -423,7 +364,7 @@ void circuit::read_def(const string &input, bool mode) {
             assert(tokens[0] == "DISTANCE");
             assert(tokens[1] == "MICRONS");
             DEFdist2Microns = atoi(tokens[2].c_str());
-            assert(DEFdist2Microns <= DEFdist2Microns);
+            assert(DEFdist2Microns <= LEFdist2Microns);
 #ifdef DEBUG
             cout << "unit distance to microns: " << DEFdist2Microns << endl;
 #endif
@@ -443,26 +384,17 @@ void circuit::read_def(const string &input, bool mode) {
         } else if (tokens[0] == "ROW" && mode == INIT) {
             get_next_n_tokens(dot_def, tokens, 5, DEFCommentChar);
 
-            // if( true ) {
+            //if( true ) {
             if (tokens[0][0] != 'h') {
+
                 row *myRow = locateOrCreateRow(tokens[0]);
                 myRow->name = tokens[0];
                 myRow->site = site2id[tokens[1]];
                 myRow->origX = atoi(tokens[2].c_str());
                 myRow->origY = atoi(tokens[3].c_str());
                 myRow->siteorient = tokens[4];
-
-                if (fabs(rowHeight - 0.0f) <= numeric_limits<double>::epsilon()) {
-                    rowHeight = sites[myRow->site].height
-                                * static_cast< double >(DEFdist2Microns);
-                }
-
-                if (wsite == 0) {
-                    wsite = static_cast< int >
-                    (sites[myRow->site].width * DEFdist2Microns + 0.5);
-                }
                 // NOTE: this contest does not allow flipping/rotation
-                // assert(myRow->siteorient == "N");
+                //assert(myRow->siteorient == "N");
                 /*
                    if( tokens[4] == "N" )
                    myRow->top_power = VDD;
@@ -476,8 +408,7 @@ void circuit::read_def(const string &input, bool mode) {
                 if (tokens[0] == "DO") {
                     get_next_n_tokens(dot_def, tokens, 3, DEFCommentChar);
                     assert(tokens[1] == "BY");
-                    myRow->numSites =
-                            max(atoi(tokens[0].c_str()), atoi(tokens[2].c_str()));
+                    myRow->numSites = max(atoi(tokens[0].c_str()), atoi(tokens[2].c_str()));
                     // NOTE: currenlty we only handle horizontal row sites
                     assert(tokens[2] == "1");
                     get_next_token(dot_def, tokens[0], DEFCommentChar);
@@ -485,15 +416,15 @@ void circuit::read_def(const string &input, bool mode) {
                         get_next_n_tokens(dot_def, tokens, 2, DEFCommentChar);
                         myRow->stepX = atoi(tokens[0].c_str());
                         myRow->stepY = atoi(tokens[1].c_str());
-                        // if( wsite == 0 )
+                        //if( wsite == 0 )
                         //    wsite = atoi(tokens[0].c_str());
-                        // else
+                        //else
                         //    assert(wsite == atoi(tokens[0].c_str()) );
 
                         // NOTE: currenlty we only handle horizontal row sites & spacing = 0
-                        assert(myRow->stepX == sites[myRow->site].width * DEFdist2Microns);
+                        assert(myRow->stepX == sites[myRow->site].width * LEFdist2Microns);
                         assert(myRow->stepY == 0);
-                        // assert(wsite > 0);
+                        //assert(wsite > 0);
                     }
                 }
             } else {
@@ -534,7 +465,7 @@ void circuit::read_def(const string &input, bool mode) {
                 read_final_def_components(dot_def);
         } else if (tokens[0] == "PINS" && mode == INIT) {
             read_def_pins(dot_def);
-        } else if (tokens[0] == "NETS" && mode == INIT)  // Shold Make Later
+        } else if (tokens[0] == "NETS" && mode == INIT)   // Shold Make Later
         {
             read_def_nets(dot_def);
         } else if (tokens[0] == "GROUPS") {
@@ -552,7 +483,7 @@ void circuit::read_def(const string &input, bool mode) {
             get_next_token(dot_def, tokens[0], DEFCommentChar);
             while (tokens[0] != "BLOCKAGES")
                 get_next_token(dot_def, tokens[0], DEFCommentChar);
-        } else if (tokens[0] == "SPECIALNETS")  // Shold Make Later !!!! Important
+        } else if (tokens[0] == "SPECIALNETS")        // Shold Make Later !!!! Important
         {
             read_def_special_nets(dot_def);
         } else if (tokens[0] == "END") {
@@ -574,6 +505,7 @@ void circuit::read_def(const string &input, bool mode) {
 }
 
 void circuit::read_def_size(const string &input) {
+
 #ifdef DEBUG
     cout << " read def size start " << endl;
 #endif
@@ -581,31 +513,27 @@ void circuit::read_def_size(const string &input) {
     vector<string> tokens(1);
 
     if (!dot_size.good()) {
-        cerr << "read_def_size:: there is no '" << input << "' for reading."
-             << endl;
+        cerr << "read_def_size:: there is no '" << input << "' for reading." << endl;
         return;
     }
 
     while (true) {
         get_next_n_tokens(dot_size, tokens, 3, DEFCommentChar);
-        if (dot_size.eof()) break;
+        if (dot_size.eof())
+            break;
         cell *theCell = locateOrCreateCell(tokens[0]);
-        theCell->width = static_cast< double >(atof(tokens[1].c_str()) * wsite);
-        theCell->height =
-                static_cast< double >(atof(tokens[2].c_str()) * rowHeight);
+        theCell->width = static_cast<double>(atof(tokens[1].c_str()) * wsite);
+        theCell->height = static_cast<double>(atof(tokens[2].c_str()) * rowHeight);
 
         macro *theMacro = &macros[theCell->type];
-        theMacro->width = static_cast< double >(atof(tokens[1].c_str()) *
-                                                (double) wsite / DEFdist2Microns);
-        theMacro->height = static_cast< double >(
-                atof(tokens[2].c_str()) * (double) rowHeight / DEFdist2Microns);
+        theMacro->width = static_cast<double>(atof(tokens[1].c_str()) * (double) wsite / LEFdist2Microns );
+        theMacro->height = static_cast<double>(atof(tokens[2].c_str()) * (double) rowHeight / LEFdist2Microns );
 
         theMacro->top_power = VDD;
 
         if (atof(tokens[2].c_str()) > 1) {
             theMacro->isMulti = true;
-            // cout << " multi cell height : " << theMacro->height * DEFdist2Microns /
-            // rowHeight << endl;
+            //cout << " multi cell height : " << theMacro->height * LEFdist2Microns / rowHeight << endl;
         }
     }
     dot_size.close();
@@ -614,6 +542,7 @@ void circuit::read_def_size(const string &input) {
 
 // assumes the COMPONENTS keyword has already been read in
 void circuit::read_init_def_components(ifstream &is) {
+
 #ifdef DEBUG
     cout << "read_init_def_component start " << endl;
 #endif
@@ -636,15 +565,13 @@ void circuit::read_init_def_components(ifstream &is) {
         if (tokens[0] == "-") {
             ++countComponents;
             get_next_n_tokens(is, tokens, 2, DEFCommentChar);
-            // assert(cell2id.find(tokens[0]) != cell2id.end());
+            //assert(cell2id.find(tokens[0]) != cell2id.end());
             if (cell2id.find(tokens[0]) == cell2id.end()) {
-//        cout << "tokens[0]: " << tokens[0] << endl;
                 myCell = locateOrCreateCell(tokens[0]);
                 myCell->type = macro2id[tokens[1]];
                 macro *myMacro = &macros[macro2id[tokens[1]]];
-                myCell->width = myMacro->width * static_cast< double >(DEFdist2Microns);
-                myCell->height =
-                        myMacro->height * static_cast< double >(DEFdist2Microns);
+                myCell->width = myMacro->width * static_cast<double>(LEFdist2Microns);
+                myCell->height = myMacro->height * static_cast<double>(LEFdist2Microns);
             } else
                 myCell = locateOrCreateCell(tokens[0]);
         } else if (tokens[0] == "+") {
@@ -653,7 +580,7 @@ void circuit::read_init_def_components(ifstream &is) {
 
             if (tokens[0] == "PLACED" || tokens[0] == "FIXED") {
                 myCell->isFixed = (tokens[0] == "FIXED");
-                // myCell->isPlaced = (tokens[0] == "PLACED");
+                //myCell->isPlaced = (tokens[0] == "PLACED");
                 get_next_n_tokens(is, tokens, 5, DEFCommentChar);
                 assert(tokens[0] == "(");
                 assert(tokens[3] == ")");
@@ -716,8 +643,8 @@ void circuit::read_final_def_components(ifstream &is) {
                 myCell->x_pos = myCell->x_coord / wsite;
                 myCell->y_pos = myCell->y_coord / rowHeight;
                 myCell->cellorient = tokens[4];
-                // NOTE: this contest does not allow flipping/rotation
-                // assert(myCell->cellorient == "N");
+                //NOTE: this contest does not allow flipping/rotation
+                //assert(myCell->cellorient == "N");
             }
         } else if (!strcmp(tokens[0].c_str(), DEFLineEndingChar)) {
             myCell = NULL;
@@ -731,7 +658,7 @@ void circuit::read_final_def_components(ifstream &is) {
 }
 
 // assumes the PINS keyword has already been read in
-// we already read pins from .verilog,
+// we already read pins from .verilog, 
 // thus this update locations / performs sanity checks
 void circuit::read_def_pins(ifstream &is) {
     pin *myPin = NULL;
@@ -751,19 +678,19 @@ void circuit::read_def_pins(ifstream &is) {
         if (tokens[0] == "-") {
             ++countPins;
             get_next_token(is, tokens[0], DEFCommentChar);
-            // assert(pin2id.find(tokens[0]) != pin2id.end());
+            //assert(pin2id.find(tokens[0]) != pin2id.end());
             myPin = locateOrCreatePin(tokens[0]);
             // NOTE: pins in .def are only for PI/POs that are fixed/placed
-            // assert(myPin->type == PI_PIN || myPin->type == PO_PIN);
+            //assert(myPin->type == PI_PIN || myPin->type == PO_PIN);
         } else if (tokens[0] == "+") {
             assert(myPin != NULL);
             get_next_token(is, tokens[0], DEFCommentChar);
 
             // NOTE: currently, we just store NET, DIRECTION, LAYER, FIXED/PLACED
-            if (tokens[0] == "NET")  // Shold Make later
+            if (tokens[0] == "NET")   // Shold Make later
             {
                 get_next_token(is, tokens[0], DEFCommentChar);
-                // assert(net2id.find(tokens[0]) != net2id.end());
+                //assert(net2id.find(tokens[0]) != net2id.end());
             } else if (tokens[0] == "DIRECTION") {
                 assert(myPin != NULL);
                 get_next_token(is, tokens[0], DEFCommentChar);
@@ -792,10 +719,8 @@ void circuit::read_def_pins(ifstream &is) {
                 assert(tokens[3] == ")");
                 assert(tokens[4] == "(");
                 assert(tokens[7] == ")");
-                myPin->x_coord +=
-                        0.5 * (atof(tokens[1].c_str()) + atof(tokens[5].c_str()));
-                myPin->y_coord +=
-                        0.5 * (atof(tokens[2].c_str()) + atof(tokens[6].c_str()));
+                myPin->x_coord += 0.5 * (atof(tokens[1].c_str()) + atof(tokens[5].c_str()));
+                myPin->y_coord += 0.5 * (atof(tokens[2].c_str()) + atof(tokens[6].c_str()));
             } else if (!strcmp(tokens[0].c_str(), DEFLineEndingChar)) {
                 myPin = NULL;
             }
@@ -818,7 +743,8 @@ void circuit::read_def_special_nets(ifstream &is) {
 
     while (countNets <= numNets) {
         get_next_n_tokens(is, tokens, 2, DEFCommentChar);
-        if (tokens[0] == "END") return;
+        if (tokens[0] == "END")
+            return;
 
         assert(tokens[0] == "-");
         if (tokens[1] == "vdd") {
@@ -827,13 +753,13 @@ void circuit::read_def_special_nets(ifstream &is) {
                 if (tokens[0] == "metal1") {
                     get_next_n_tokens(is, tokens, 9, DEFCommentChar);
                     if (tokens[8] == "(") {
-                        // cout << tokens[6] << endl;
+                        //cout << tokens[6] << endl;
                         if (atoi(tokens[6].c_str()) == 6000) {
-                            // cout << " power found !!!!! " << endl;
+                            //cout << " power found !!!!! " << endl;
                             initial_power = VDD;
                         } else if (atoi(tokens[6].c_str()) == 8000) {
                             initial_power = VSS;
-                            // cout << " power found !!!!! " << endl;
+                            //cout << " power found !!!!! " << endl;
                         }
                     }
                 }
@@ -846,9 +772,7 @@ void circuit::read_def_special_nets(ifstream &is) {
                 get_next_token(is, tokens[0], DEFCommentChar);
         } else {
             cout << "tokens[1] == " << tokens[1] << endl;
-            cerr << "circuit::read_def_spacial_nets ==> invalid special net. ( vdd / "
-                    "vss only ) "
-                 << endl;
+            cerr << "circuit::read_def_spacial_nets ==> invalid special net. ( vdd / vss only ) " << endl;
             return;
         }
         countNets++;
@@ -858,7 +782,7 @@ void circuit::read_def_special_nets(ifstream &is) {
 }
 
 // assumes the NETS keyword has already been read in
-// we already read nets from .verilog,
+// we already read nets from .verilog, 
 // thus this only performs sanity checks
 void circuit::read_def_nets(ifstream &is) {
 #ifdef DEBUG
@@ -884,7 +808,7 @@ void circuit::read_def_nets(ifstream &is) {
             get_next_token(is, tokens[0], DEFCommentChar);
 
             // Shold make later --> net , pin should build on def
-            // assert(net2id.find(tokens[0]) != net2id.end());
+            //assert(net2id.find(tokens[0]) != net2id.end());
             myNet = locateOrCreateNet(tokens[0]);
             unsigned myNetId = net2id.find(myNet->name)->second;
 
@@ -896,9 +820,8 @@ void circuit::read_def_nets(ifstream &is) {
             assert(tokens[0] == "(");
             assert(tokens[3] == ")");
             // ( PIN PI/PO ) or ( cell_instance internal_pin )
-            string pinName =
-                    tokens[1] == "PIN" ? tokens[2] : tokens[1] + ":" + tokens[2];
-            // assert(pin2id.find(pinName) != pin2id.end());
+            string pinName = tokens[1] == "PIN" ? tokens[2] : tokens[1] + ":" + tokens[2];
+            //assert(pin2id.find(pinName) != pin2id.end());
             myPin = locateOrCreatePin(pinName);
             myPin->net = myNetId;
             myNet->source = myPin->id;
@@ -912,27 +835,28 @@ void circuit::read_def_nets(ifstream &is) {
                 myPin->type = NONPIO_PIN;
                 macro *theMacro = &macros[cells[myPin->owner].type];
                 macro_pin *myMacroPin = &theMacro->pins[tokens[2]];
-                myPin->x_offset =
-                        myMacroPin->port[0].xLL / 2 + myMacroPin->port[0].xUR / 2;
-                myPin->y_offset =
-                        myMacroPin->port[0].yLL / 2 + myMacroPin->port[0].yUR / 2;
+                myPin->x_offset = myMacroPin->port[0].xLL / 2 + myMacroPin->port[0].xUR / 2;
+                myPin->y_offset = myMacroPin->port[0].yLL / 2 + myMacroPin->port[0].yUR / 2;
             }
-            // assert(myPin->net == myNetId);
+            //assert(myPin->net == myNetId);
 
             do {
                 get_next_token(is, tokens[0], DEFCommentChar);
-                if (tokens[0] == DEFLineEndingChar) break;
+                if (tokens[0] == DEFLineEndingChar)
+                    break;
 
-                if (tokens[0] == "+") break;
+                if (tokens[0] == "+")
+                    break;
 
                 assert(tokens[0] == "(");
                 get_next_n_tokens(is, tokens, 3, DEFCommentChar);
                 assert(tokens.size() == 3);
                 assert(tokens[2] == ")");
-                if (tokens[2] == DEFLineEndingChar) break;
+                if (tokens[2] == DEFLineEndingChar)
+                    break;
 
                 pinName = tokens[0] == "PIN" ? tokens[1] : tokens[0] + ":" + tokens[1];
-                // assert(pin2id.find(pinName) != pin2id.end());
+                //assert(pin2id.find(pinName) != pin2id.end());
                 myPin = locateOrCreatePin(pinName);
                 myPin->net = myNetId;
 
@@ -945,10 +869,8 @@ void circuit::read_def_nets(ifstream &is) {
                     myPin->type = NONPIO_PIN;
                     macro *theMacro = &macros[cells[myPin->owner].type];
                     macro_pin *myMacroPin = &theMacro->pins[tokens[1]];
-                    myPin->x_offset =
-                            myMacroPin->port[0].xLL / 2 + myMacroPin->port[0].xUR / 2;
-                    myPin->y_offset =
-                            myMacroPin->port[0].yLL / 2 + myMacroPin->port[0].yUR / 2;
+                    myPin->x_offset = myMacroPin->port[0].xLL / 2 + myMacroPin->port[0].xUR / 2;
+                    myPin->y_offset = myMacroPin->port[0].yLL / 2 + myMacroPin->port[0].yUR / 2;
                 }
                 myNet->sinks.push_back(myPin->id);
 
@@ -994,14 +916,10 @@ void circuit::read_def_regions(ifstream &is) {
                 myRect.xUR = min(rx, atof(tokens[4].c_str()));
                 myRect.yUR = min(ty, atof(tokens[5].c_str()));
 
-                myGroup->boundary.xLL =
-                        max(lx, min(myGroup->boundary.xLL, atof(tokens[0].c_str())));
-                myGroup->boundary.yLL =
-                        max(by, min(myGroup->boundary.yLL, atof(tokens[1].c_str())));
-                myGroup->boundary.xUR =
-                        min(rx, max(myGroup->boundary.xUR, atof(tokens[4].c_str())));
-                myGroup->boundary.yUR =
-                        min(ty, max(myGroup->boundary.yUR, atof(tokens[5].c_str())));
+                myGroup->boundary.xLL = max(lx, min(myGroup->boundary.xLL, atof(tokens[0].c_str())));
+                myGroup->boundary.yLL = max(by, min(myGroup->boundary.yLL, atof(tokens[1].c_str())));
+                myGroup->boundary.xUR = min(rx, max(myGroup->boundary.xUR, atof(tokens[4].c_str())));
+                myGroup->boundary.yUR = min(ty, max(myGroup->boundary.yUR, atof(tokens[5].c_str())));
                 myGroup->regions.push_back(myRect);
 
                 get_next_token(is, tokens[0], DEFCommentChar);
@@ -1012,8 +930,8 @@ void circuit::read_def_regions(ifstream &is) {
                 myGroup->type = tokens[0].c_str();
                 assert(tokens[2] == DEFLineEndingChar);
             }
-            // group2id.insert(make_pair(myGroup.name,groups.size()));
-            // groups.push_back(myGroup);
+            //group2id.insert(make_pair(myGroup.name,groups.size()));
+            //groups.push_back(myGroup);
         }
     }
     assert(countRegions == numRegions);
@@ -1045,8 +963,7 @@ void circuit::read_def_groups(ifstream &is) {
                 myGroup->tag = tokens[0].c_str();
                 for (int i = 0; i < cells.size(); i++) {
                     cell *theCell = &cells[i];
-                    if (strncmp(myGroup->tag.c_str(), theCell->name.c_str(),
-                                myGroup->tag.size() - 1) == 0) {
+                    if (strncmp(myGroup->tag.c_str(), theCell->name.c_str(), myGroup->tag.size() - 1) == 0) {
                         myGroup->siblings.push_back(theCell);
                         theCell->group = myGroup->name;
                         theCell->inGroup = true;
@@ -1072,11 +989,10 @@ void circuit::read_def_groups(ifstream &is) {
 }
 
 void circuit::read_lef(const string &input) {
-    //	cout << "  .lef file       : "<< input <<endl;
+//	cout << "  .lef file       : "<< input <<endl;
     ifstream dot_lef(input.c_str());
     if (!dot_lef.good()) {
-        cerr << "read_cell_lef:: cannot open `" << input << "' for reading."
-             << endl;
+        cerr << "read_cell_lef:: cannot open `" << input << "' for reading." << endl;
         exit(1);
     }
 
@@ -1084,7 +1000,8 @@ void circuit::read_lef(const string &input) {
 
     while (!dot_lef.eof()) {
         get_next_token(dot_lef, tokens[0], LEFCommentChar);
-        if (tokens[0] == LEFLineEndingChar) continue;
+        if (tokens[0] == LEFLineEndingChar)
+            continue;
 
         if (tokens[0] == "VERSION") {
             get_next_token(dot_lef, tokens[0], LEFCommentChar);
@@ -1125,9 +1042,9 @@ void circuit::read_lef(const string &input) {
             assert(tokens.size() == 3);
             assert(tokens[0] == "DATABASE");
             assert(tokens[1] == "MICRONS");
-            DEFdist2Microns = atoi(tokens[2].c_str());
+            LEFdist2Microns = atoi(tokens[2].c_str());
 #ifdef DEBUG
-            cout << "unit distance to microns: " << DEFdist2Microns << endl;
+            cout << "unit distance to microns: " << LEFdist2Microns << endl;
 #endif
             get_next_n_tokens(dot_lef, tokens, 3, LEFCommentChar);
             assert(tokens[0] == LEFLineEndingChar);
@@ -1164,8 +1081,8 @@ void circuit::read_lef(const string &input) {
         }
     }
     dot_lef.close();
-    rowHeight = sites[0].height * static_cast< double >(DEFdist2Microns);
-    wsite = static_cast< int >(sites[0].width * DEFdist2Microns + 0.5);
+    rowHeight = sites[0].height * static_cast<double>(LEFdist2Microns);
+    wsite = static_cast<int>( sites[0].width * LEFdist2Microns + 0.5);
     assert(rowHeight != 0);
     assert(wsite != 0);
 #ifdef DEBUG
@@ -1174,12 +1091,12 @@ void circuit::read_lef(const string &input) {
     return;
 }
 
+
 void circuit::read_cell_lef(const string &input) {
-    //	cout << "  .lef file       : "<< input <<endl;
+//	cout << "  .lef file       : "<< input <<endl;
     ifstream dot_lef(input.c_str());
     if (!dot_lef.good()) {
-        cerr << "read_cell_lef:: cannot open `" << input << "' for reading."
-             << endl;
+        cerr << "read_cell_lef:: cannot open `" << input << "' for reading." << endl;
         exit(1);
     }
 
@@ -1187,7 +1104,8 @@ void circuit::read_cell_lef(const string &input) {
 
     while (!dot_lef.eof()) {
         get_next_token(dot_lef, tokens[0], LEFCommentChar);
-        if (tokens[0] == LEFLineEndingChar) continue;
+        if (tokens[0] == LEFLineEndingChar)
+            continue;
 
         if (tokens[0] == "VERSION") {
             get_next_token(dot_lef, tokens[0], LEFCommentChar);
@@ -1222,9 +1140,9 @@ void circuit::read_cell_lef(const string &input) {
             assert(tokens.size() == 3);
             assert(tokens[0] == "DATABASE");
             assert(tokens[1] == "MICRONS");
-            DEFdist2Microns = atoi(tokens[2].c_str());
+            LEFdist2Microns = atoi(tokens[2].c_str());
 #ifdef DEBUG
-            cout << "unit distance to microns: " << DEFdist2Microns << endl;
+            cout << "unit distance to microns: " << LEFdist2Microns << endl;
 #endif
             get_next_n_tokens(dot_lef, tokens, 3, LEFCommentChar);
             assert(tokens[0] == LEFLineEndingChar);
@@ -1246,11 +1164,10 @@ void circuit::read_cell_lef(const string &input) {
 }
 
 void circuit::read_tech_lef(const string &input) {
-    //	cout << "  .lef file       : "<< input <<endl;
+//	cout << "  .lef file       : "<< input <<endl;
     ifstream dot_lef(input.c_str());
     if (!dot_lef.good()) {
-        cerr << "read_tech_lef:: cannot open `" << input << "' for reading."
-             << endl;
+        cerr << "read_tech_lef:: cannot open `" << input << "' for reading." << endl;
         exit(1);
     }
 
@@ -1258,7 +1175,8 @@ void circuit::read_tech_lef(const string &input) {
     while (!dot_lef.eof()) {
         get_next_token(dot_lef, tokens[0], LEFCommentChar);
 
-        if (tokens[0] == LEFLineEndingChar) continue;
+        if (tokens[0] == LEFLineEndingChar)
+            continue;
 
         if (tokens[0] == "VERSION") {
             get_next_token(dot_lef, tokens[0], LEFCommentChar);
@@ -1299,9 +1217,9 @@ void circuit::read_tech_lef(const string &input) {
             assert(tokens.size() == 3);
             assert(tokens[0] == "DATABASE");
             assert(tokens[1] == "MICRONS");
-            DEFdist2Microns = atoi(tokens[2].c_str());
+            LEFdist2Microns = atoi(tokens[2].c_str());
 #ifdef DEBUG
-            cout << "unit distance to microns: " << DEFdist2Microns << endl;
+            cout << "unit distance to microns: " << LEFdist2Microns << endl;
 #endif
             get_next_n_tokens(dot_lef, tokens, 3, LEFCommentChar);
             assert(tokens[0] == LEFLineEndingChar);
@@ -1342,6 +1260,10 @@ void circuit::read_tech_lef(const string &input) {
     cout << "Reading tech lef done ... " << endl;
 #endif
     // after read_lef_site
+    rowHeight = sites[0].height * static_cast<double>(LEFdist2Microns);
+    wsite = static_cast<int>( sites[0].width * LEFdist2Microns + 0.5);
+    assert(rowHeight != 0);
+    assert(wsite != 0);
     return;
 }
 
@@ -1398,9 +1320,9 @@ void circuit::read_lef_property(ifstream &is) {
         get_next_token(is, tokens[0], LEFCommentChar);
     }
     // Edge Spacing Hard Mapping -- by SGD
-    edge_spacing[make_pair(1, 1)] = 0.4 * DEFdist2Microns;
-    edge_spacing[make_pair(1, 2)] = 0.4 * DEFdist2Microns;
-    edge_spacing[make_pair(2, 2)] = 0 * DEFdist2Microns;
+    edge_spacing[make_pair(1, 1)] = 0.4 * LEFdist2Microns;
+    edge_spacing[make_pair(1, 2)] = 0.4 * LEFdist2Microns;
+    edge_spacing[make_pair(2, 2)] = 0 * LEFdist2Microns;
 
     get_next_token(is, tokens[0], LEFCommentChar);
     return;
@@ -1456,10 +1378,10 @@ void circuit::read_lef_layer(ifstream &is) {
 #endif
             } else {
 #ifdef DEBUG
-                cerr << "read_lef_layer::PROPERTY unsupported property " << tokens[0]
-                     << endl;
+                cerr << "read_lef_layer::PROPERTY unsupported property " << tokens[0] << endl;
 #endif
             }
+
         } else if (tokens[0] == "OFFSET") {
             get_next_n_tokens(is, tokens, 2, LEFCommentChar);
             myLayer->xOffset = atof(tokens[0].c_str());
@@ -1478,7 +1400,7 @@ void circuit::read_lef_layer(ifstream &is) {
             get_next_n_tokens(is, tokens, 2, LEFCommentChar);
             assert(tokens[1] == LEFLineEndingChar);
             myLayer->maxWidth = atof(tokens[0].c_str());
-        } else if (tokens[0] == "SPACINGTABLE") {  // SKIP ( not saved )
+        } else if (tokens[0] == "SPACINGTABLE") {    // SKIP ( not saved )
             get_next_token(is, tokens[0], LEFCommentChar);
             while (tokens[0] != ";") {
                 get_next_token(is, tokens[0], LEFCommentChar);
@@ -1499,22 +1421,25 @@ void circuit::read_lef_layer(ifstream &is) {
             if (tokens[3] == "LENGTH") {
                 get_next_n_tokens(is, tokens, 4, LEFCommentChar);
                 temp.length = atof(tokens[0].c_str());
-                if (tokens[1] == "WITHIN") temp.within = atof(tokens[2].c_str());
+                if (tokens[1] == "WITHIN")
+                    temp.within = atof(tokens[2].c_str());
                 assert(tokens[3] == LEFLineEndingChar);
             } else if (tokens[3] == "FROMABOVE") {
                 get_next_token(is, tokens[0], LEFCommentChar);
-                // assert(tokens[0] == LEFLineEndingChar);
+                //assert(tokens[0] == LEFLineEndingChar);
             } else if (tokens[3] == "FROMBELOW") {
                 get_next_token(is, tokens[0], LEFCommentChar);
-                // assert(tokens[0] == LEFLineEndingChar);
+                //assert(tokens[0] == LEFLineEndingChar);
             }
             myLayer->mincut_rule.push_back(temp);
         } else if (tokens[0] == "ACCURRENTDENSITY") {
+
             while (tokens[0] != "TABLEENTRIES")
                 get_next_token(is, tokens[0], LEFCommentChar);
 
             while (tokens[0] != LEFLineEndingChar)
                 get_next_token(is, tokens[0], LEFCommentChar);
+
         } else if (tokens[0] == "SPACING") {
             get_next_n_tokens(is, tokens, 2, LEFCommentChar);
             space temp;
@@ -1535,7 +1460,7 @@ void circuit::read_lef_layer(ifstream &is) {
                 assert(tokens[0] == LEFLineEndingChar);
             }
             myLayer->spacing_rule.push_back(temp);
-        } else if (tokens[0] == "ENCLOSURE") {  // SKIP ( not saved )
+        } else if (tokens[0] == "ENCLOSURE") {      //SKIP ( not saved )
             get_next_n_tokens(is, tokens, 4, LEFCommentChar);
             assert(tokens[3] == LEFLineEndingChar);
         } else {
@@ -1569,13 +1494,12 @@ void circuit::read_def_vias(ifstream &is) {
         if (tokens[0] == "-") {
             pass = false;
             get_next_token(is, tokens[0], DEFCommentChar);
-            OPENDP_HASH_MAP<string, unsigned>::iterator it =
-                    via2id.find(tokens[0].c_str());
+            dense_hash_map<string, unsigned>::iterator it = via2id.find(tokens[0].c_str());
             if (it == via2id.end()) {
                 myVia = locateOrCreateVia(tokens[0]);
             } else
                 pass = true;
-            //            countVias++;
+//            countVias++;
         } else if (tokens[0] == "+") {
             if (pass == false) {
                 get_next_token(is, tokens[0], DEFCommentChar);
@@ -1633,8 +1557,8 @@ void circuit::read_lef_via(ifstream &is) {
             get_next_token(is, tokens[0], LEFCommentChar);
         } else {
             get_next_token(is, tokens[0], LEFCommentChar);
-            // cerr << "read_lef_via:: unsupported keyword " << tokens[0] << endl;
-            // exit(1);
+            //cerr << "read_lef_via:: unsupported keyword " << tokens[0] << endl;
+            //exit(1);
         }
     }
     return;
@@ -1688,7 +1612,7 @@ void circuit::read_lef_viaRule(ifstream &is) {
             cerr << "read_lef_viaRule:: unsupported keyword " << tokens[0] << endl;
 #endif
             get_next_token(is, tokens[0], LEFCommentChar);
-            // exit(1);
+            //exit(1);
         }
     }
     viaRules.push_back(myViaRule);
@@ -1711,7 +1635,7 @@ void circuit::read_lef_macro(ifstream &is) {
     while (tokens[0] != "END") {
         if (tokens[0] == "PROPERTY") {
             get_next_n_tokens(is, tokens, 12, LEFCommentChar);
-            myMacro->edgetypeLeft = atoi(tokens[4].c_str());
+            myMacro->edgetypeLeft = atoi(tokens[4].c_str()); // minimum spacing
             myMacro->edgetypeRight = atoi(tokens[8].c_str());
             assert(tokens[1] == "\"");
             assert(tokens[11] == LEFLineEndingChar);
@@ -1731,10 +1655,8 @@ void circuit::read_lef_macro(ifstream &is) {
             myMacro->width = atof(tokens[0].c_str());
             myMacro->height = atof(tokens[2].c_str());
             // remove because of DAC 16 bench ( read_def_size )
-            // if( (int)floor(myMacro->height*DEFdist2Microns/rowHeight+0.5) >
-            // max_cell_height )
-            //    max_cell_height =
-            //    (int)floor(myMacro->height*DEFdist2Microns/rowHeight+0.5);
+            //if( (int)floor(myMacro->height*LEFdist2Microns/rowHeight+0.5) > max_cell_height )
+            //    max_cell_height = (int)floor(myMacro->height*LEFdist2Microns/rowHeight+0.5);
         } else if (tokens[0] == "SITE")
             read_lef_macro_site(is, myMacro);
         else if (tokens[0] == "PIN")
@@ -1748,7 +1670,7 @@ void circuit::read_lef_macro(ifstream &is) {
             assert(tokens[0] == LEFLineEndingChar);
         } else if (tokens[0] == "FOREIGN") {
             get_next_n_tokens(is, tokens, 2, LEFCommentChar);
-            // assert(tokens[1] == LEFLineEndingChar);
+            //assert(tokens[1] == LEFLineEndingChar);
         } else if (tokens[0] == "OBS") {
             get_next_token(is, tokens[0], LEFCommentChar);
             // NOTE: this contest does not handle other than LAYER keyword for OBS
@@ -1776,84 +1698,65 @@ void circuit::read_lef_macro(ifstream &is) {
                     get_next_token(is, tokens[0], LEFCommentChar);
             }
         } else {
-            // get_next_token(is, tokens[0], LEFCommentChar);
-            // cerr << "read_lef_macro:: unsupported keyword " << tokens[0] << endl;
-            // exit(1);
+            //get_next_token(is, tokens[0], LEFCommentChar);
+            //cerr << "read_lef_macro:: unsupported keyword " << tokens[0] << endl;
+            //exit(1);
         }
         get_next_token(is, tokens[0], LEFCommentChar);
     }
 
-    read_lef_macro_define_top_power(myMacro);
-
-    get_next_token(is, tokens[0], LEFCommentChar);
-    assert(myMacro->name == tokens[0]);
-    return;
-}
-
 // - - - - - - - define multi row cell & define top power - - - - - - - - //
-void circuit::read_lef_macro_define_top_power(macro *myMacro) {
 
-    bool isVddFound = false, isVssFound = false;
+    bool power_found = false;
     string vdd_str, vss_str;
 
-    auto pinPtr = myMacro->pins.find("vdd");
-    if (pinPtr != myMacro->pins.end()) {
+    dense_hash_map<string, macro_pin>::iterator it = myMacro->pins.find("vdd");
+    if (it == myMacro->pins.end()) {
         vdd_str = "vdd";
-        isVddFound = true;
-    } else if (pinPtr != myMacro->pins.find("VDD")) {
-        vdd_str = "VDD";
-        isVddFound = true;
-    }
-
-    pinPtr = myMacro->pins.find("vss");
-    if (pinPtr != myMacro->pins.end()) {
         vss_str = "vss";
-        isVssFound = true;
-    } else if (pinPtr != myMacro->pins.find("VSS")) {
-        vss_str = "VSS";
-        isVssFound = true;
+        power_found = true;
+    } else {
+        dense_hash_map<string, macro_pin>::iterator it = myMacro->pins.find("VDD");
+        if (it == myMacro->pins.end()) {
+            vdd_str = "VDD";
+            vss_str = "VSS";
+            power_found = true;
+        }
     }
 
+    if (power_found == true) {
 
-    if (isVddFound || isVssFound) {
+        macro_pin *pin_vdd = &myMacro->pins[vdd_str];
+        macro_pin *pin_vss = &myMacro->pins[vss_str];
         double max_vdd = 0;
         double max_vss = 0;
 
-        macro_pin *pin_vdd = NULL;
-        if (isVddFound) {
-            pin_vdd = &myMacro->pins.at(vdd_str);
-            for (int i = 0; i < pin_vdd->port.size(); i++) {
-                if (pin_vdd->port[i].yUR > max_vdd) {
-                    max_vdd = pin_vdd->port[i].yUR;
-                }
-            }
+        for (int i = 0; i < pin_vdd->port.size(); i++) {
+            if (pin_vdd->port[i].yUR > max_vdd)
+                max_vdd = pin_vdd->port[i].yUR;
         }
-
-        macro_pin *pin_vss = NULL;
-        if (isVssFound) {
-            pin_vss = &myMacro->pins.at(vss_str);
-            for (int j = 0; j < pin_vss->port.size(); j++) {
-                if (pin_vss->port[j].yUR > max_vss) {
-                    max_vss = pin_vss->port[j].yUR;
-                }
-            }
+        for (int j = 0; j < pin_vss->port.size(); j++) {
+            if (pin_vss->port[j].yUR > max_vss)
+                max_vss = pin_vss->port[j].yUR;
         }
-
         if (max_vdd > max_vss)
             myMacro->top_power = VDD;
         else
             myMacro->top_power = VSS;
 
-        if (pin_vdd && pin_vss) {
-            if (pin_vdd->port.size() + pin_vss->port.size() > 2) {
-                myMacro->isMulti = true;
-            } else if (pin_vdd->port.size() + pin_vss->port.size() < 2) {
-                cerr << "read_lef_macro:: power num error, vdd + vss => "
-                     << (pin_vdd->port.size() + pin_vss->port.size()) << endl;
-                exit(1);
-            }
+        if (pin_vdd->port.size() + pin_vss->port.size() > 2)
+            myMacro->isMulti = true;
+        else if (pin_vdd->port.size() + pin_vss->port.size() < 2) {
+#ifdef DEBUG
+            cerr << "read_lef_macro:: power num error, vdd + vss => " << (pin_vdd->port.size() + pin_vss->port.size() ) << endl;
+#endif
         }
     }
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
+
+    get_next_token(is, tokens[0], LEFCommentChar);
+    assert(myMacro->name == tokens[0]);
+    return;
 }
 
 // assumes the keyword SITE has already been read in
@@ -1876,13 +1779,9 @@ void circuit::read_lef_macro_site(ifstream &is, macro *myMacro) {
     } while (tokens[0] != LEFLineEndingChar);
 
     if (numArgs > 1) {
-        cout << "read_lef_macro_site:: WARNING -- bypassing " << numArgs
-             << " additional field in "
-             << "MACRO " << myMacro->name << " SITE "
-             << sites[site2id.find(mySite->name)->second].name << "." << endl;
-        cout << "It is likely that the fields are from [sitePattern], which are "
-                "currently not expected."
-             << endl;
+        cout << "read_lef_macro_site:: WARNING -- bypassing " << numArgs << " additional field in "
+             << "MACRO " << myMacro->name << " SITE " << sites[site2id.find(mySite->name)->second].name << "." << endl;
+        cout << "It is likely that the fields are from [sitePattern], which are currently not expected." << endl;
     }
 #ifdef DEBUG
     cerr << "read_lef_macro_site:: end\n" << endl;
@@ -1903,7 +1802,7 @@ void circuit::read_lef_macro_pin(ifstream &is, macro *myMacro) {
     while (tokens[0] != "END") {
         if (tokens[0] == "DIRECTION") {
             get_next_n_tokens(is, tokens, 2, LEFCommentChar);
-            // assert(tokens[1] == LEFLineEndingChar);
+            //assert(tokens[1] == LEFLineEndingChar);
             myPin.direction = tokens[0];
         } else if (tokens[0] == "SHAPE") {
             get_next_n_tokens(is, tokens, 2, LEFCommentChar);
@@ -1937,8 +1836,7 @@ void circuit::read_lef_macro_pin(ifstream &is, macro *myMacro) {
                     assert(tokens[0] == LEFLineEndingChar);
                 } else {
 #ifdef DEBUG
-                    cerr << "read_lef_macro_pin:: unsupported keyword " << tokens[0]
-                         << endl;
+                    cerr << "read_lef_macro_pin:: unsupported keyword " << tokens[0] << endl;
 #endif
                 }
                 get_next_token(is, tokens[0], LEFCommentChar);
@@ -1959,64 +1857,59 @@ void circuit::read_lef_macro_pin(ifstream &is, macro *myMacro) {
     get_next_token(is, tokens[0], LEFCommentChar);
     assert(pinName == tokens[0]);
     myMacro->pins[pinName] = myPin;
-    if (pinName == FFClkPortName) myMacro->isFlop = true;
+    if (pinName == FFClkPortName)
+        myMacro->isFlop = true;
     return;
 }
 
-
-// 
-// Writing DEF
-//  
-// It opens in_def_name pointer and write DEF in output
-//
 void circuit::write_def(const string &output) {
+    ofstream dot_out_def(output.c_str());
     ifstream dot_in_def(in_def_name.c_str());
 
     if (!dot_in_def.good()) {
-        cerr << "write_def:: cannot open'" << in_def_name << "' for wiring. "
-             << endl;
+        cerr << "write_def:: cannot open'" << in_def_name << "' for wiring. " << endl;
         exit(1);
     }
-
-
-    // save writing pointer into ckt object
-    fileOut = fopen(output.c_str(), "w");
-    if (!fileOut) {
+    if (!dot_out_def.good()) {
         cerr << "write_def:: cannot open '" << output << "' for writing. " << endl;
         exit(1);
     }
 
-    // upto meets COMPONENTS, just copy contents from dot_in_def pointer
     string line;
+
     while (!dot_in_def.eof()) {
-        if (dot_in_def.eof()) break;
+        if (dot_in_def.eof())
+            break;
         getline(dot_in_def, line);
-
-        line += "\n";
-        fwrite(line.c_str(), line.length(), 1, fileOut);
-
+        dot_out_def << line << endl;
         if (strncmp(line.c_str(), "COMPONENTS", 10) == 0) {
-
-            // Write Components Sections
-            WriteDefComponents(in_def_name);
-            do {
+            for (int i = 0; i < cells.size(); i++) {
+                cell *theCell = &cells[i];
+                macro *theMacro = &macros[theCell->type];
                 getline(dot_in_def, line);
-            } while (strncmp(line.c_str(), "END COMPONENTS", 14) != 0);
+                //assert( line[3] == '-');
+                dot_out_def << "   - " << theCell->name << " " << theMacro->name << endl;
+                if (theCell->isFixed == true) {
+                    getline(dot_in_def, line);
+                    dot_out_def << "      + FIXED ( " << theCell->x_coord << " " << theCell->y_coord << " ) "
+                                << theCell->cellorient << " ;" << endl;
+                } else {
+                    getline(dot_in_def, line);
+                    dot_out_def << "      + PLACED ( " << theCell->x_coord << " " << theCell->y_coord << " ) "
+                                << theCell->cellorient << " ;" << endl;
+                }
 
-            line += "\n";
-            fwrite(line.c_str(), line.length(), 1, fileOut);
+            }
         }
     }
     cout << " DEF file write success !! " << endl;
     cout << " location : " << output << endl;
-    cout << "-------------------------------------------------------------------"
-         << endl;
+    cout << "-------------------------------------------------------------------" << endl;
     return;
 }
 
 void circuit::copy_init_to_final() {
-    for (vector<cell>::iterator theCell = cells.begin(); theCell != cells.end();
-         ++theCell) {
+    for (vector<cell>::iterator theCell = cells.begin(); theCell != cells.end(); ++theCell) {
         theCell->x_coord = theCell->init_x_coord;
         theCell->y_coord = theCell->init_y_coord;
     }
@@ -2027,13 +1920,13 @@ void circuit::copy_init_to_final() {
 void circuit::init_large_cell_stor() {
     large_cell_stor.reserve(cells.size());
     for (auto &curCell: cells) {
-        large_cell_stor.push_back(
-                make_pair(curCell.width * curCell.height, &curCell));
+        large_cell_stor.push_back(make_pair(curCell.width * curCell.height, &curCell));
     }
 
-    sort(large_cell_stor.begin(), large_cell_stor.end(),
-         [](const pair<float, cell *> &lhs, const pair<float, cell *> &rhs) {
-             return (lhs.first > rhs.first);
-         });
+    sort(large_cell_stor.begin(), large_cell_stor.end(), [](const pair<float, cell *> &lhs,
+                                                            const pair<float, cell *> &rhs) {
+        return (lhs.first > rhs.first);
+    });
     return;
 }
+

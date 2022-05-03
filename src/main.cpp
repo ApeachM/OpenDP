@@ -39,29 +39,14 @@
 #include <time.h>
 #include "mymeasure.h"
 
-using opendp::circuit;
-using opendp::cell;
-using opendp::row;
-using opendp::pixel;
-using opendp::rect;
-
-using std::cout;
-using std::endl;
-using std::cerr;
+using namespace std;
 
 int main(int argc, char *argv[]) {
-    cout << "===================================================================="
-            "======="
-         << endl;
-    cout << "   Open Source Mixed-Height Standard Cell Detail Placer < "
-            "OpenDP_v1.0 >    "
-         << endl;
-    cout << "   Developers : SangGi Do, Mingyu Woo                               "
-            "       "
-         << endl;
-    cout << "===================================================================="
-            "======="
-         << endl;
+
+    cout << "===========================================================================" << endl;
+    cout << "   Open Source Mixed-Height Standard Cell Detail Placer < OpenDP_v1.0 >    " << endl;
+    cout << "   Developers : SangGi Do, Mingyu Woo                                      " << endl;
+    cout << "===========================================================================" << endl;
 
     CMeasure measure;
     measure.start_clock();

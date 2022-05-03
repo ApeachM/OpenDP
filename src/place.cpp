@@ -1,72 +1,58 @@
-/////////////////////////////////////////////////////////////////////////////
-// Authors: SangGi Do(sanggido@unist.ac.kr), Mingyu Woo(mwoo@eng.ucsd.edu)
-//          (respective Ph.D. advisors: Seokhyeong Kang, Andrew B. Kahng)
-//
-//          Original parsing structure was made by Myung-Chul Kim (IBM).
-//
-// BSD 3-Clause License
-//
-// Copyright (c) 2018, SangGi Do and Mingyu Woo
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-//
-// * Redistributions of source code must retain the above copyright notice, this
-//   list of conditions and the following disclaimer.
-//
-// * Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the following disclaimer in the documentation
-//   and/or other materials provided with the distribution.
-//
-// * Neither the name of the copyright holder nor the names of its
-//   contributors may be used to endorse or promote products derived from
-//   this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ///////////////////////////////////////////////////////////////////////////////
+//// Authors: SangGi Do(sanggido@unist.ac.kr), Mingyu Woo(mwoo@eng.ucsd.edu)
+////          (respective Ph.D. advisors: Seokhyeong Kang, Andrew B. Kahng)
+////
+////          Original parsing structure was made by Myung-Chul Kim (IBM).
+////
+//// BSD 3-Clause License
+////
+//// Copyright (c) 2018, SangGi Do and Mingyu Woo
+//// All rights reserved.
+////
+//// Redistribution and use in source and binary forms, with or without
+//// modification, are permitted provided that the following conditions are met:
+////
+//// * Redistributions of source code must retain the above copyright notice, this
+////   list of conditions and the following disclaimer.
+////
+//// * Redistributions in binary form must reproduce the above copyright notice,
+////   this list of conditions and the following disclaimer in the documentation
+////   and/or other materials provided with the distribution.
+////
+//// * Neither the name of the copyright holder nor the names of its
+////   contributors may be used to endorse or promote products derived from
+////   this software without specific prior written permission.
+////
+//// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+//// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+//// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+//// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+//// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+//// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+//// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+//// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+/////////////////////////////////////////////////////////////////////////////////
 
 #include "circuit.h"
+#include <random>
 
 #define _DEBUG
 
-using opendp::circuit;
-using opendp::cell;
-using opendp::row;
-using opendp::pixel;
-using opendp::rect;
-
-using std::cout;
-using std::endl;
-using std::cerr;
-using std::string;
-using std::vector;
-using std::pair;
-using std::sort;
-using std::make_pair;
-
 double disp(cell *theCell) {
-    return abs(theCell->init_x_coord - theCell->x_coord) +
-           abs(theCell->init_y_coord - theCell->y_coord);
+    return abs(theCell->init_x_coord - theCell->x_coord) + abs(theCell->init_y_coord - theCell->y_coord);
 }
 
 bool SortUpOrder(cell *a, cell *b) {
+
     if (a->width * a->height > b->width * b->height)
         return true;
     else if (a->width * a->height < b->width * b->height)
         return false;
     else
         return (a->dense_factor > b->dense_factor);
-    // return ( disp(a) > disp(b) );
+    //return ( disp(a) > disp(b) );
 }
 
 bool SortByDisp(cell *a, cell *b) {
@@ -77,7 +63,7 @@ bool SortByDisp(cell *a, cell *b) {
 }
 
 bool SortByDense(cell *a, cell *b) {
-    // if( a->dense_factor*a->height > b->dense_factor*b->height )
+    //if( a->dense_factor*a->height > b->dense_factor*b->height )
     if (a->dense_factor > b->dense_factor)
         return true;
     else
@@ -95,6 +81,12 @@ bool SortDownOrder(cell *a, cell *b) {
 
 // SIMPLE PLACEMENT ( NOTICE // FUNCTION ORDER SHOULD BE FIXED )
 void circuit::simple_placement(CMeasure &measure) {
+    //for(int i = 0; i < cells.size(); i++){
+    //    cell* theCell = &cells[i];
+    //    cout << "init : " << theCell->init_x_coord << ", init : " << theCell->init_y_coord << endl;
+
+    //}
+
     if (groups.size() > 0) {
         // group_cell -> region assign
         group_cell_region_assign();
@@ -116,6 +108,17 @@ void circuit::simple_placement(CMeasure &measure) {
         cout << " - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
     }
 
+    //for (int i = 0; i < cells.size(); i++){
+    //    cell* theCell = &cells[i];
+    //cout << "herer : " << theCell->x_coord << " " << theCell->y_coord << endl;
+    //    if ((int)theCell->width % 400){
+    //        cout << "gggggg" << endl;
+    //        cout << theCell->isFixed << endl;
+    //        cout << wsite << endl;
+    //    }
+    // }
+    y_align();
+
     measure.stop_clock("pre-placement");
 
     // naive method placement ( Multi -> single )
@@ -127,7 +130,8 @@ void circuit::simple_placement(CMeasure &measure) {
             for (int j = 0; j < 3; j++) {
                 int count_a = group_refine(theGroup);
                 int count_b = group_annealing(theGroup);
-                if (count_a < 10 || count_b < 100) break;
+                if (count_a < 10 || count_b < 100)
+                    break;
             }
         }
         measure.stop_clock("Group cell placement");
@@ -136,6 +140,13 @@ void circuit::simple_placement(CMeasure &measure) {
     measure.stop_clock("non Group cell placement");
     cout << " non_group_cell_placement done .. " << endl;
     cout << " - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
+
+    //for(int i = 0; i < cells.size(); i++) {
+    //    cell* theCell = &cells[i];
+    //    cout << "after : " << theCell->x_coord << ", after : " << theCell->y_coord << endl;
+
+    //}
+
     return;
 }
 
@@ -145,7 +156,8 @@ void circuit::non_group_cell_pre_placement() {
         bool inGroup = false;
         rect *target;
         pair<int, int> coord;
-        if (theCell->inGroup == true || theCell->isPlaced == true) continue;
+        if (theCell->inGroup == true || theCell->isPlaced == true)
+            continue;
         for (int j = 0; j < groups.size(); j++) {
             group *theGroup = &groups[j];
             for (int k = 0; k < theGroup->regions.size(); k++) {
@@ -157,8 +169,7 @@ void circuit::non_group_cell_pre_placement() {
             }
         }
         if (inGroup == true) {
-            pair<int, int> coord =
-                    nearest_coord_to_rect_boundary(theCell, target, "init_coord");
+            pair<int, int> coord = nearest_coord_to_rect_boundary(theCell, target, "init_coord");
             if (map_move(theCell, coord.first, coord.second) == true)
                 theCell->hold = true;
         }
@@ -171,13 +182,15 @@ void circuit::group_cell_pre_placement() {
         group *theGroup = &groups[i];
         for (int j = 0; j < theGroup->siblings.size(); j++) {
             cell *theCell = theGroup->siblings[j];
-            if (theCell->isFixed == true || theCell->isPlaced == true) continue;
+            if (theCell->isFixed == true || theCell->isPlaced == true)
+                continue;
             int dist = INT_MAX;
             bool inGroup = false;
             rect *target;
             for (int k = 0; k < theGroup->regions.size(); k++) {
                 rect *theRect = &theGroup->regions[k];
-                if (check_inside(theCell, theRect, "init_coord") == true) inGroup = true;
+                if (check_inside(theCell, theRect, "init_coord") == true)
+                    inGroup = true;
                 int temp_dist = dist_for_rect(theCell, theRect, "init_coord");
                 if (temp_dist < dist) {
                     dist = temp_dist;
@@ -185,8 +198,7 @@ void circuit::group_cell_pre_placement() {
                 }
             }
             if (inGroup == false) {
-                pair<int, int> coord =
-                        nearest_coord_to_rect_boundary(theCell, target, "init_coord");
+                pair<int, int> coord = nearest_coord_to_rect_boundary(theCell, target, "init_coord");
                 if (map_move(theCell, coord.first, coord.second) == true)
                     theCell->hold = true;
             }
@@ -196,28 +208,47 @@ void circuit::group_cell_pre_placement() {
 }
 
 void circuit::non_group_cell_placement(string mode) {
+
     vector<cell *> cell_list;
     cell_list.reserve(cells.size());
 
+    std::random_device rd;
+    std::default_random_engine rng(rd());
+
+
     for (int i = 0; i < cells.size(); i++) {
         cell *theCell = &cells[i];
-        if (theCell->isFixed || theCell->inGroup || theCell->isPlaced) continue;
+        if (theCell->isFixed || theCell->inGroup || theCell->isPlaced)
+            continue;
 
         cell_list.push_back(theCell);
     }
+    //shuffle(cell_list.begin(), cell_list.end(), rng);
     sort(cell_list.begin(), cell_list.end(), SortUpOrder);
 
     for (int i = 0; i < cell_list.size(); i++) {
         cell *theCell = cell_list[i];
         macro *theMacro = &macros[theCell->type];
         if (theMacro->isMulti == true)
-            if (map_move(theCell, mode) == false) shift_move(theCell, mode);
+            if (map_move(theCell, mode) == false) {
+                cout << "map move fail" << endl;
+                if (shift_move(theCell, mode) == false) {
+                    cout << "shift move fail" << endl;
+                    cout << theCell->name << endl;
+                }
+            }
     }
     for (int i = 0; i < cell_list.size(); i++) {
         cell *theCell = cell_list[i];
         macro *theMacro = &macros[theCell->type];
         if (theMacro->isMulti == false)
-            if (map_move(theCell, mode) == false) shift_move(theCell, mode);
+            if (map_move(theCell, mode) == false) {
+                cout << "map move fail" << endl;
+                if (shift_move(theCell, mode) == false) {
+                    cout << "shift move fail" << endl;
+                    cout << theCell->name << endl;
+                }
+            }
     }
 
     return;
@@ -228,6 +259,10 @@ void circuit::group_cell_placement(string mode) {
 }
 
 void circuit::group_cell_placement(string mode, string mode2) {
+    //srand(777);
+    std::random_device rd;
+    std::default_random_engine rng(rd());
+
     for (int i = 0; i < groups.size(); i++) {
         bool single_pass = true;
         bool multi_pass = true;
@@ -237,15 +272,18 @@ void circuit::group_cell_placement(string mode, string mode2) {
         cell_list.reserve(cells.size());
         for (int j = 0; j < theGroup->siblings.size(); j++) {
             cell *theCell = theGroup->siblings[j];
-            if (theCell->isFixed || theCell->isPlaced) continue;
+            if (theCell->isFixed || theCell->isPlaced)
+                continue;
             cell_list.push_back(theCell);
         }
+        //shuffle(cell_list.begin(), cell_list.end(), rng);
         sort(cell_list.begin(), cell_list.end(), SortUpOrder);
         // sort( cell_list.begin(), cell_list.end(), SortByDense);
         // place multi-deck cells on each group region
         for (int j = 0; j < cell_list.size(); j++) {
             cell *theCell = cell_list[j];
-            if (theCell->isFixed || theCell->isPlaced) continue;
+            if (theCell->isFixed || theCell->isPlaced)
+                continue;
             assert(theCell->inGroup == true);
             macro *theMacro = &macros[theCell->type];
             if (theMacro->isMulti == true) {
@@ -256,21 +294,20 @@ void circuit::group_cell_placement(string mode, string mode2) {
                 }
             }
         }
-        // cout << "Group util : " << theGroup->util << endl;
+        //cout << "Group util : " << theGroup->util << endl;
         if (multi_pass == true) {
-            //				cout << " Group : " << theGroup->name <<
-            //" multi-deck placement done - ";
+            //				cout << " Group : " << theGroup->name << " multi-deck placement done - ";
             // place single-deck cells on each group region
             for (int j = 0; j < cell_list.size(); j++) {
                 cell *theCell = cell_list[j];
-                if (theCell->isFixed || theCell->isPlaced) continue;
+                if (theCell->isFixed || theCell->isPlaced)
+                    continue;
                 assert(theCell->inGroup == true);
                 macro *theMacro = &macros[theCell->type];
                 if (theMacro->isMulti == false) {
                     single_pass = map_move(theCell, mode);
                     if (single_pass == false) {
-                        //						cout << "map_move fail" <<
-                        //endl;
+                        cout << "map_move fail" << endl;
                         break;
                     }
                 }
@@ -287,6 +324,7 @@ void circuit::group_cell_placement(string mode, string mode2) {
             }
             //				cout << "erase done" << endl;
 
+
             // determine brick placement by utilization
             if (theGroup->util > 0.95) {
                 brick_placement_1(theGroup);
@@ -300,6 +338,7 @@ void circuit::group_cell_placement(string mode, string mode2) {
 
 // place toward group edges
 void circuit::brick_placement_1(group *theGroup) {
+
     rect theRect = theGroup->boundary;
     vector<pair<int, cell *> > sort_by_dist;
     sort_by_dist.reserve(theGroup->siblings.size());
@@ -319,15 +358,12 @@ void circuit::brick_placement_1(group *theGroup) {
         else
             y_tar = theRect.yLL;
 
-        sort_by_dist.push_back(make_pair(
-                abs(theCell->init_x_coord - x_tar) + abs(theCell->init_y_coord - y_tar),
-                theCell));
+        sort_by_dist.push_back(
+                make_pair(abs(theCell->init_x_coord - x_tar) + abs(theCell->init_y_coord - y_tar), theCell));
     }
 
     sort(sort_by_dist.begin(), sort_by_dist.end(),
-         [](const pair<int, cell *> &lhs, const pair<int, cell *> &rhs) {
-             return (lhs.first < rhs.first);
-         });
+         [](const pair<int, cell *> &lhs, const pair<int, cell *> &rhs) { return (lhs.first < rhs.first); });
 
     for (int i = 0; i < sort_by_dist.size(); i++) {
         cell *theCell = sort_by_dist[i].second;
@@ -353,6 +389,7 @@ void circuit::brick_placement_1(group *theGroup) {
 
 // place toward region edges
 void circuit::brick_placement_2(group *theGroup) {
+
     vector<pair<int, cell *> > sort_by_dist;
     sort_by_dist.reserve(theGroup->siblings.size());
 
@@ -370,19 +407,17 @@ void circuit::brick_placement_2(group *theGroup) {
         else
             y_tar = theRect.yLL;
 
-        sort_by_dist.push_back(make_pair(
-                abs(theCell->init_x_coord - x_tar) + abs(theCell->init_y_coord - y_tar),
-                theCell));
+        sort_by_dist.push_back(
+                make_pair(abs(theCell->init_x_coord - x_tar) + abs(theCell->init_y_coord - y_tar), theCell));
     }
 
     sort(sort_by_dist.begin(), sort_by_dist.end(),
-         [](const pair<int, cell *> &lhs, const pair<int, cell *> &rhs) {
-             return (lhs.first < rhs.first);
-         });
+         [](const pair<int, cell *> &lhs, const pair<int, cell *> &rhs) { return (lhs.first < rhs.first); });
 
     for (int i = 0; i < sort_by_dist.size(); i++) {
         cell *theCell = sort_by_dist[i].second;
-        if (theCell->hold == true) continue;
+        if (theCell->hold == true)
+            continue;
         rect theRect = theGroup->regions[theCell->region];
         int x_tar = 0;
         int y_tar = 0;
@@ -405,46 +440,49 @@ void circuit::brick_placement_2(group *theGroup) {
 }
 
 int circuit::group_refine(group *theGroup) {
+
     vector<pair<double, cell *> > sort_by_disp;
     sort_by_disp.reserve(theGroup->siblings.size());
 
     for (int i = 0; i < theGroup->siblings.size(); i++) {
         cell *theCell = theGroup->siblings[i];
-        double disp = abs(theCell->init_x_coord - theCell->x_coord) +
-                      abs(theCell->init_y_coord - theCell->y_coord);
+        double disp = abs(theCell->init_x_coord - theCell->x_coord) + abs(theCell->init_y_coord - theCell->y_coord);
         sort_by_disp.push_back(make_pair(disp, theCell));
     }
 
     sort(sort_by_disp.begin(), sort_by_disp.end(),
-         [](const pair<double, cell *> &lhs, const pair<double, cell *> &rhs) {
-             return (lhs.first > rhs.first);
-         });
+         [](const pair<double, cell *> &lhs, const pair<double, cell *> &rhs) { return (lhs.first > rhs.first); });
 
     int count = 0;
     for (int i = 0; i < sort_by_disp.size() / 20; i++) {
         cell *theCell = sort_by_disp[i].second;
-        if (theCell->hold == true) continue;
+        if (theCell->hold == true)
+            continue;
 
-        if (refine_move(theCell, "init_coord") == true) count++;
+        if (refine_move(theCell, "init_coord") == true)
+            count++;
     }
-    // cout << " Group refine : " << count << endl;
+    //cout << " Group refine : " << count << endl;
     return count;
 }
 
 int circuit::group_annealing(group *theGroup) {
+
     srand(777);
-    // srand(time(NULL));
+    //srand(time(NULL));
     int count = 0;
 
     for (int i = 0; i < 1000 * theGroup->siblings.size(); i++) {
         cell *cellA = theGroup->siblings[rand() % theGroup->siblings.size()];
         cell *cellB = theGroup->siblings[rand() % theGroup->siblings.size()];
 
-        if (cellA->hold == true || cellB->hold == true) continue;
+        if (cellA->hold == true || cellB->hold == true)
+            continue;
 
-        if (swap_cell(cellA, cellB) == true) count++;
+        if (swap_cell(cellA, cellB) == true)
+            count++;
     }
-    // cout << " swap cell count : " << count << endl;
+    //cout << " swap cell count : " << count << endl;
     return count;
 }
 
@@ -454,11 +492,13 @@ int circuit::non_group_annealing() {
     for (int i = 0; i < 100 * cells.size(); i++) {
         cell *cellA = &cells[rand() % cells.size()];
         cell *cellB = &cells[rand() % cells.size()];
-        if (cellA->hold == true || cellB->hold == true) continue;
+        if (cellA->hold == true || cellB->hold == true)
+            continue;
 
-        if (swap_cell(cellA, cellB) == true) count++;
+        if (swap_cell(cellA, cellB) == true)
+            count++;
     }
-    // cout << " swap cell count : " << count << endl;
+    //cout << " swap cell count : " << count << endl;
     return count;
 }
 
@@ -468,20 +508,22 @@ int circuit::non_group_refine() {
 
     for (int i = 0; i < cells.size(); i++) {
         cell *theCell = &cells[i];
-        if (theCell->isFixed || theCell->hold || theCell->inGroup) continue;
+        if (theCell->isFixed || theCell->hold || theCell->inGroup)
+            continue;
         sort_by_disp.push_back(make_pair(disp(theCell), theCell));
     }
     sort(sort_by_disp.begin(), sort_by_disp.end(),
-         [](const pair<double, cell *> &lhs, const pair<double, cell *> &rhs) {
-             return (lhs.first > rhs.first);
-         });
+         [](const pair<double, cell *> &lhs, const pair<double, cell *> &rhs) { return (lhs.first > rhs.first); });
 
     int count = 0;
     for (int i = 0; i < sort_by_disp.size() / 50; i++) {
         cell *theCell = sort_by_disp[i].second;
-        if (theCell->hold == true) continue;
-        if (refine_move(theCell, "init_coord") == true) count++;
+        if (theCell->hold == true)
+            continue;
+        if (refine_move(theCell, "init_coord") == true)
+            count++;
     }
-    // cout << " nonGroup refine : " << count << endl;
+    //cout << " nonGroup refine : " << count << endl;
     return count;
 }
+

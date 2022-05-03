@@ -39,23 +39,6 @@
 
 #define _DEBUG
 
-using opendp::circuit;
-using opendp::cell;
-using opendp::row;
-using opendp::pixel;
-using opendp::rect;
-
-using std::max;
-using std::min;
-using std::pair;
-using std::cout;
-using std::endl;
-using std::ifstream;
-using std::ofstream;
-using std::vector;
-using std::make_pair;
-using std::to_string;
-
 bool circuit::check_legality() {
     ofstream log("../logdir/check_legality.log");
     cout << " ==== CHECK LEGALITY ==== " << endl;
@@ -176,29 +159,24 @@ void circuit::local_density_check(double unit, double target_Ut) {
                 int lcol =
                         max((int) floor((theCell->x_coord +
                                          (unsigned) (theRect->xLL *
-                                                     static_cast< double >(DEFdist2Microns)) -
+                                                     static_cast< double >(LEFdist2Microns)) -
                                          lx) /
                                         gridUnit),
                             0);
                 int rcol =
                         min((int) floor((theCell->x_coord +
                                          (unsigned) (theRect->xUR *
-                                                     static_cast< double >(DEFdist2Microns)) -
-                                         lx) /
+                                                     static_cast< double >(LEFdist2Microns)) - lx) /
                                         gridUnit),
                             x_gridNum - 1);
                 int brow =
                         max((int) floor((theCell->y_coord +
-                                         (unsigned) (theRect->yLL *
-                                                     static_cast< double >(DEFdist2Microns)) -
-                                         by) /
+                                         (unsigned) (theRect->yLL * static_cast<double>(LEFdist2Microns)) - by) /
                                         gridUnit),
                             0);
                 int trow =
                         min((int) floor((theCell->y_coord +
-                                         (unsigned) (theRect->yUR *
-                                                     static_cast< double >(DEFdist2Microns)) -
-                                         by) /
+                                         (unsigned) (theRect->yUR * static_cast< double >(LEFdist2Microns)) - by) /
                                         gridUnit),
                             y_gridNum - 1);
 
@@ -211,22 +189,22 @@ void circuit::local_density_check(double unit, double target_Ut) {
                                 max(bins[binId].lx,
                                     (double) theCell->x_coord +
                                     (unsigned) (theRect->xLL *
-                                                static_cast< double >(DEFdist2Microns)));
+                                                static_cast< double >(LEFdist2Microns)));
                         double hx =
                                 min(bins[binId].hx,
                                     (double) theCell->x_coord +
                                     (unsigned) (theRect->xUR *
-                                                static_cast< double >(DEFdist2Microns)));
+                                                static_cast< double >(LEFdist2Microns)));
                         double ly =
                                 max(bins[binId].ly,
                                     (double) theCell->y_coord +
                                     (unsigned) (theRect->yLL *
-                                                static_cast< double >(DEFdist2Microns)));
+                                                static_cast< double >(LEFdist2Microns)));
                         double hy =
                                 min(bins[binId].hy,
                                     (double) theCell->y_coord +
                                     (unsigned) (theRect->yUR *
-                                                static_cast< double >(DEFdist2Microns)));
+                                                static_cast< double >(LEFdist2Microns)));
 
                         if ((hx - lx) > 1.0e-5 && (hy - ly) > 1.0e-5) {
                             double common_area = (hx - lx) * (hy - ly);
@@ -420,6 +398,10 @@ void circuit::placed_check(ofstream &log) {
         cell *theCell = &cells[i];
         if (theCell->isPlaced == false) {
             log << " placed_check fail ==> " << theCell->name << endl;
+            cout << "name : " << theCell->name << endl;
+            cout << "is placed : " << theCell->isPlaced << endl;
+            cout << "width / height : " << theCell->width << "/" << theCell->height << endl;
+            cout << "inGroup : " << theCell->inGroup << endl;
             valid = false;
             count++;
         }
@@ -459,43 +441,22 @@ void circuit::overlap_check(ofstream &log) {
         int y_pos = (int) floor(theCell->y_coord / rowHeight + 0.5);
         int x_step = (int) ceil(theCell->width / wsite);
         int y_step = (int) ceil(theCell->height / rowHeight);
-
-
-        int x_ur = x_pos + x_step;
-        int y_ur = y_pos + y_step;
-
-        // Fixed Cell can be out of Current DIEAREA settings.
-        if (theCell->isFixed) {
-            x_pos = max(0, x_pos);
-            y_pos = max(0, y_pos);
-            x_ur = min(x_ur, IntConvert(die.xUR / wsite));
-            y_ur = min(y_ur, IntConvert(die.yUR / rowHeight));
-        }
-
-//    cout << theCell->width / wsite << endl; 
-//    cout << theCell->height / rowHeight << endl; 
-//    cout << "x: " << x_pos << " " << x_ur << endl;
-//    cout << "y: " << y_pos << " " << y_ur << endl;
-
         assert(x_pos > -1);
         assert(y_pos > -1);
         assert(x_step > 0);
         assert(y_step > 0);
-        assert(x_ur <= (int) floor(die.xUR / wsite + 0.5));
-        assert(y_ur <= (int) floor(die.yUR / rowHeight + 0.5));
+        assert(x_pos + x_step <= (int) floor(rx / wsite + 0.5));
+        assert(y_pos + y_step <= (int) floor(ty / rowHeight + 0.5));
 
 
-        for (int j = y_pos; j < y_ur; j++) {
-            for (int k = x_pos; k < x_ur; k++) {
+        for (int j = y_pos; j < y_pos + y_step; j++) {
+            for (int k = x_pos; k < x_pos + x_step; k++) {
                 if (grid_2[j][k].linked_cell == NULL) {
                     grid_2[j][k].linked_cell = theCell;
                     grid_2[j][k].util = 1.0;
                 } else {
                     log << "overlap_check ==> FAIL!! ( cell " << theCell->name
                         << " is overlap with " << grid_2[j][k].linked_cell->name << " ) "
-                        << " ( "
-                        << IntConvert(k * wsite + core.xLL) << ", "
-                        << IntConvert(j * rowHeight + core.yLL) << " )"
                         << endl;
                     valid = false;
                 }
