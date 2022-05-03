@@ -610,7 +610,7 @@ pair<bool, pair<int, int> > circuit::bin_search(int x_pos, cell *theCell,
                 return make_pair(available, pos);
             }
         }
-    } else {
+    } else if (x_pos < x) {
         for (int i = 0; i < 10; i++) {
             // check all grids are empty
             bool available = true;
@@ -648,12 +648,60 @@ pair<bool, pair<int, int> > circuit::bin_search(int x_pos, cell *theCell,
                 return make_pair(available, pos);
             }
         }
+    } else {
+        for (int i = 0; i < 10; i++) {
+            // check all grids are empty
+            int signFactor;
+            // search 0, 0, 1, -1, 2, -2, 3, -3, ...
+            for (int j = 0; j < 2; ++j) {
+                if (j == 0) {
+                    signFactor = 1;
+                } else if (j == 1) {
+                    signFactor = -1;
+                }
+                bool available = true;
+                if (x + i * signFactor + x_step > (int) (die.xUR / wsite)) {
+                    available = false;
+                } else {
+                    for (int k = y; k < y + y_step; k++) {
+                        for (int l = x + i * signFactor; l < x + i * signFactor + x_step; l++) {
+                            if (grid[k][l].linked_cell != NULL || grid[k][l].isValid == false) {
+                                available = false;
+                                break;
+                            }
+                            // check group regions
+                            if (theCell->inGroup == true) {
+                                if (grid[k][l].group != group2id[theCell->group])
+                                    available = false;
+                            } else {
+                                if (grid[k][l].group != UINT_MAX) available = false;
+                            }
+                        }
+                        if (available == false) break;
+                    }
+                }
+                if (available == true) {
+                    if (edge_left == 0)
+                        pos = make_pair(y, x + i * signFactor);
+                    else
+                        pos = make_pair(y, x + i * signFactor + edge_left);
+
+                    return make_pair(available, pos);
+                }
+
+            }
+
+        }
     }
     return make_pair(false, pos);
 }
 
 pair<bool, pixel *> circuit::diamond_search(cell *theCell, int x_coord,
                                             int y_coord) {
+    // 1. set search boundary max / min
+    // 2. check available for the input coordinate
+    // 3. do diamond search
+
     pixel *myPixel = NULL;
     pair<bool, pair<int, int> > found;
     int x_pos = (int) floor(x_coord / wsite + 0.5);
@@ -664,7 +712,7 @@ pair<bool, pixel *> circuit::diamond_search(cell *theCell, int x_coord,
     int y_start = 0;
     int y_end = 0;
 
-    // set search boundary max / min
+    // 1. set search boundary max / min
     if (theCell->inGroup == true) {
         group *theGroup = &groups[group2id[theCell->group]];
         x_start = max(x_pos - (int) (displacement * 5),
@@ -702,13 +750,18 @@ pair<bool, pixel *> circuit::diamond_search(cell *theCell, int x_coord,
     cout << " x bound ( " << x_start << ") - (" << x_end << ")" << endl;
     cout << " y bound ( " << y_start << ") - (" << y_end << ")" << endl;
 #endif
+
+    // 2. check available for the input coordinate
+//    found = bin_search(x_pos, theCell, min(x_end, max(x_start, x_pos)),
+//                       max(y_start, min(y_end, y_pos)));
     found = bin_search(x_pos, theCell, min(x_end, max(x_start, x_pos)),
-                       max(y_start, min(y_end, y_pos)));
+                       min(y_end, max(y_start, y_pos)));
     if (found.first == true) {
         myPixel = &grid[found.second.first][found.second.second];
         return make_pair(found.first, myPixel);
     }
 
+    // 3. do diamond search
     int div = 4;
     if (design_util > 0.6 || num_fixed_nodes > 0) div = 1;
 
