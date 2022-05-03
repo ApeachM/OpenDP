@@ -61,9 +61,9 @@ using std::to_string;
 using std::string;
 using std::find;
 
-int findIndex(const vector<double> & vec, double item){
+int findIndex(const vector<double> &vec, double item) {
     auto ret = find(vec.begin(), vec.end(), item);
-    if(ret != vec.end())
+    if (ret != vec.end())
         return ret - vec.begin();
     return -1;
 }
@@ -904,15 +904,8 @@ bool circuit::map_move(cell *theCell, string mode) {
 
 bool circuit::map_move(cell *theCell, int x, int y) {
     pair<bool, pixel *> myPixel = diamond_search(theCell, x, y);
-    if (myPixel.first == true) {
-        pair<bool, pixel *> nearPixel =
-                diamond_search(theCell, myPixel.second->x_pos * wsite,
-                               myPixel.second->y_pos * rowHeight);
-        if (nearPixel.first == true) {
-            paint_pixel(theCell, nearPixel.second->x_pos, nearPixel.second->y_pos);
-            // cout << " near found!! " << endl;
-        } else
-            paint_pixel(theCell, myPixel.second->x_pos, myPixel.second->y_pos);
+    if (myPixel.first) {
+        paint_pixel(theCell, myPixel.second->x_pos, myPixel.second->y_pos);
         return true;
     } else {
 #ifdef DEBUG
