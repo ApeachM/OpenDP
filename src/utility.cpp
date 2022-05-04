@@ -146,8 +146,9 @@ void circuit::evaluation() {
     }
 
     double smm;
-    if ((violated_const / max_disp_const) > 1) smm = 1 + static_cast<double>((violated_const / max_disp_const) *
-                                                                             (max_displacement / (100 * rowHeight)));
+    if ((violated_const / max_disp_const) > 1)
+        smm = 1 + static_cast<double>((violated_const / max_disp_const) *
+                                      (max_displacement / (100 * rowHeight)));
     else smm = 1 + static_cast<double>(max_displacement / (100 * rowHeight));
 
     double shpwl =
@@ -669,7 +670,7 @@ pair<bool, pair<int, int> > circuit::bin_search(int x_pos, cell *theCell, int x,
                 return make_pair(available, pos);
             }
         }
-    } else {
+    } else if (x_pos < x) {
         for (int i = 0; i < 10; i++) {
 
             // check all grids are empty
@@ -708,6 +709,55 @@ pair<bool, pair<int, int> > circuit::bin_search(int x_pos, cell *theCell, int x,
 
                 return make_pair(available, pos);
             }
+        }
+    } else {
+        for (int i = 0; i < 10; i++) {
+            int signFactor;
+            for (int j = 0; j < 2; ++j) {
+                if (j == 0)
+                    signFactor = 1;
+                else
+                    signFactor = -1;
+
+                // check all grids are empty
+                bool available = true;
+                if (x + i * signFactor + x_step > (int) (die.xUR / wsite)) {
+                    available = false;
+                } else {
+                    for (int k = y; k < y + y_step; k++) {
+                        for (int l = x + i * signFactor; l < x + i * signFactor + x_step; l++) {
+                            if (grid[k][l].linked_cell != NULL || grid[k][l].isValid == false) {
+                                available = false;
+                                break;
+                            }
+                            // check group regions
+                            if (theCell->inGroup == true) {
+                                if (grid[k][l].group != group2id[theCell->group])
+                                    available = false;
+                            } else {
+                                if (grid[k][l].group != UINT_MAX)
+                                    available = false;
+                            }
+                        }
+                        if (available == false)
+                            break;
+                    }
+                }
+                if (available == true) {
+#ifdef DEBUG
+                    cout << " found pos x - y : " << x << " - " << y << " Finish Search " << endl;
+                cout << " - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
+#endif
+                    if (edge_left == 0)
+                        pos = make_pair(y, x + i * signFactor);
+                    else
+                        pos = make_pair(y, x + i * signFactor + edge_left);
+
+                    return make_pair(available, pos);
+                }
+
+            }
+
         }
     }
     return make_pair(false, pos);
