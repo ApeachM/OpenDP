@@ -28,7 +28,7 @@ vector<cell *> circuit::non_group_movable_cells(int gcellid) {
 
 void Agent::state_init(circuit *ck, vector<cell *> cells, int gcellid) {
     targetGcell = gcellid;
-    state.cell_list = std::move(cells);
+    state.cell_list = cells;
 
     for (int i = 0; i < (int) state.cell_list.size(); i++) {
         cell *tarCell = state.cell_list[i];

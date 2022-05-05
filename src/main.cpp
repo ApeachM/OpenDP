@@ -198,14 +198,14 @@ int main(int argc, char *argv[]) {
     Agent *agent = agent_new();  // self.ag = self.ck.agent()
     ckt_simple_placement(ck);  // self.ck.place()
 
-    int max_train_ep = 500;
+    int max_train_ep = 3;
     for (int episode = 0; episode < max_train_ep; ++episode) {
         // env.init()
         ckt_rtree_init(ck);
 
         // s = env.s_init(gcell) ->
         // self.ck.rl_init(self.ag, gcell)
-        int gcell = 40;
+        int gcell = 30;
         int cellNum = ckt_state_init(ck, agent, gcell);  // cellNum = self.lib.ckt_state_init(self.obj, agent, gcell)
 /*
             for i in range(cellNum):
@@ -229,8 +229,8 @@ int main(int argc, char *argv[]) {
         }
 
         // step
-        for (int i = 0; i < 30; ++i) {
-            int targetID = 3 + i;  // randomly assign
+        for (auto & cellFeature : cellFeatures) {
+            int targetID = cellFeature[0];
             int moveType = ckt_action(ck, agent, targetID);
             ckt_feature_update(ck, agent, targetID, moveType);
             ckt_reward_calc(ck, agent);

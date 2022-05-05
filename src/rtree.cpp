@@ -233,9 +233,12 @@ void circuit::get_ovcells(cell *theCell) {
     cellboxRtree *ccRtree = (cellboxRtree *) btw_cell_rtree;
     vector<pair<box, cell *>> ovcells;
 
+//    box queryBox(point((double)theCell->x_coord, (double) theCell->y_coord),
+//    point((double) (theCell->x_coord + theCell->width),
+//          (double) (theCell->y_coord, theCell->y_coord + theCell->height)));
     box queryBox(point((double)theCell->x_coord, (double) theCell->y_coord),
     point((double) (theCell->x_coord + theCell->width),
-          (double) (theCell->y_coord, theCell->y_coord + theCell->height)));
+          (double) (theCell->y_coord + theCell->height)));
     ccRtree->query(bgi::intersects(queryBox), back_inserter(ovcells));
     //theCell->ovcells.reserve(ovcells.size());
 
