@@ -391,13 +391,14 @@ bool circuit::paint_pixel(cell *theCell, int x_pos, int y_pos) {
     theCell->x_coord = x_pos * wsite;
     theCell->y_coord = y_pos * rowHeight;
     theCell->isPlaced = true;
+    theCell->moveTry = true;
 #ifdef DEBUG
     cout << "paint cell : " << theCell->name << endl;
-    cout << "group : " << theCell->group << endl;
-    cout << "init_x_coord - init_y_coord : " << theCell->init_x_coord << " - " << theCell->init_y_coord << endl;
-    cout << "x_coord - y_coord : " << theCell->x_coord << " - " << theCell->y_coord << endl;
-    cout << "x_step - y_step : " << x_step << " - " << y_step << endl;
-    cout << "x_pos - y_pos : " << x_pos << " - " << y_pos << endl;
+       cout << "group : " << theCell->group << endl;
+       cout << "init_x_coord - init_y_coord : " << theCell->init_x_coord << " - " << theCell->init_y_coord << endl;
+       cout << "x_coord - y_coord : " << theCell->x_coord << " - " << theCell->y_coord << endl;
+       cout << "x_step - y_step : " << x_step << " - " << y_step << endl;
+       cout << "x_pos - y_pos : " << x_pos << " - " << y_pos << endl;
 #endif
     for (int i = y_pos; i < y_pos + y_step; i++) {
         for (int j = x_pos; j < x_pos + x_step; j++) {

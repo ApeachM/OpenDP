@@ -79,6 +79,7 @@ void circuit::evaluation() {
     double disp_H3 = 0;
     double disp_H4 = 0;
 
+
     cell *maxCell = NULL;
     double displacement;
     for (int i = 0; i < cells.size(); i++) {
@@ -114,15 +115,14 @@ void circuit::evaluation() {
         //int num_group_cells = 0;
         //int num_nongroup_cells = 0;
         //if(displacement > max_disp_const){
-        //		if(theCell->isGroup)
-        //			num_group_cells++;
-        //		else
-        //			num_nongroup_cells++;
-        //	}
-        //	}
-        //	cout<<"cell anlaysis: " <<num_group_cells << endl;
-        //	cout<<"cell analysis2: " << num_nongroup_cells << endl;
+//		if(theCell->isGroup)
+//			num_group_cells++;
+//		else
+//			num_nongroup_cells++;
+//	}
     }
+//	cout<<"cell anlaysis: " <<num_group_cells << endl;
+//	cout<<"cell analysis2: " << num_nongroup_cells << endl;
     avg_displacement = sum_displacement / count_displacement;
     double sam;
 
@@ -134,8 +134,8 @@ void circuit::evaluation() {
     if (h2) avg_disp_H2 = static_cast<double>(disp_H2 / H2);
     if (h3) avg_disp_H3 = static_cast<double>(disp_H3 / H3);
     if (h4) avg_disp_H4 = static_cast<double>(disp_H4 / H4);
-    sam = static_cast<double>((avg_disp_H1 + avg_disp_H2 + avg_disp_H3 + avg_disp_H4) /
-                              (h1 + h2 + h3 + h4)); // should modify H1 H2 H3 H4 count
+    sam = static_cast<double>((avg_disp_H1 + avg_disp_H2 + avg_disp_H3 + avg_disp_H4) / (h1 + h2 + h3 + h4)) /
+          rowHeight; // should modify H1 H2 H3 H4 count
 
 
     double max_util = 0.0;
@@ -151,23 +151,23 @@ void circuit::evaluation() {
                                       (max_displacement / (100 * rowHeight)));
     else smm = 1 + static_cast<double>(max_displacement / (100 * rowHeight));
 
-    double shpwl =
-            std::max((HPWL("") - HPWL("INIT")) / HPWL("INIT"), 0.0) * (1 + std::max(calc_density_factor(8.0), 0.2));
+    //double shpwl = std::max((HPWL("")-HPWL("INIT"))/HPWL("INIT"), 0.0) * (1 + std::max(calc_density_factor(8.0), 0.2));
+    double shpwl = std::max((HPWL("") - HPWL("INIT")) / HPWL("INIT"), 0.0) * (1 + 0.2);
 
     cout << " - - - - - EVALUATION - - - - - " << endl;
-    cout << " AVG_displacement : " << avg_displacement << endl;
-    cout << " SUM_displacement : " << sum_displacement << endl;
-    cout << " MAX_displacement : " << max_displacement << endl;
+    cout << " [EPI] AVG_displacement : " << avg_displacement << endl;
+    cout << " [EPI] SUM_displacement : " << sum_displacement << endl;
+    cout << " [EPI] MAX_displacement : " << max_displacement << endl;
     cout << " - - - - - - - - - - - - - - - - " << endl;
-    cout << " GP HPWL          : " << HPWL("INIT") / 1000000 << endl;
-    cout << " HPWL             : " << HPWL("") / 1000000 << endl;
-    cout << " avg_Disp_site    : " << Disp() / cells.size() / wsite << endl;
-    cout << " avg_Disp_row     : " << Disp() / cells.size() / rowHeight << endl;
-    cout << " delta_HPWL       : " << (HPWL("") - HPWL("INIT")) / HPWL("INIT") * 100 << endl;
-    cout << " Smm              : " << smm << endl;
-    cout << " Sam              : " << sam / rowHeight << endl;
-    cout << " Shpwl            : " << shpwl << endl;
-    cout << " Stotal           : " << sam * smm * (1 + shpwl) / rowHeight << endl;
+    cout << " [EPI] GP HPWL          : " << HPWL("INIT") / 1000000 << endl;
+    cout << " [EPI] HPWL             : " << HPWL("") / 1000000 << endl;
+    cout << " [EPI] avg_Disp_site    : " << Disp() / cells.size() / wsite << endl;
+    cout << " [EPI] avg_Disp_row     : " << Disp() / cells.size() / rowHeight << endl;
+    cout << " [EPI] delta_HPWL       : " << (HPWL("") - HPWL("INIT")) / HPWL("INIT") * 100 << endl;
+    cout << " [EPI] Smm              : " << smm << endl;
+    cout << " [EPI] Sam              : " << sam << endl;
+    cout << " [EPI] Shpwl            : " << shpwl << endl;
+    cout << " [EPI] Stotal           : " << smm * sam * (1 + shpwl) << endl;
     //   cout << " Violated cells   : " << H1 << "  " << H2 << "  " << H3 << "  " << H4 << endl;
     return;
 }
@@ -192,18 +192,8 @@ double circuit::HPWL(string mode) {
     for (int i = 0; i < nets.size(); i++) {
         rect box;
         net *theNet = &nets[i];
-        //cout << "------------------------------------" << endl;
-        //cout << " net name : " << theNet->name << endl;	
+        //cout << " net name : " << theNet->name << endl;
         pin *source = &pins[theNet->source];
-        //cout << "source pin coord : "<< source->type << "  " << source->x_coord << "  " << source->y_coord << endl;
-        //for(int j = 0; j < theNet->sinks.size(); j++) {
-        //    pin* sink = &pins[theNet->sinks[j]];
-        //    cout << "sink pin coord : " << sink->type << "  " << sink->x_coord << "  " << sink->y_coord << endl;
-
-        //}
-        //cout << "------------------------------------" << endl;
-
-        //pin* source = &pins[theNet->source];
 
         if (source->type == NONPIO_PIN) {
             cell *theCell = &cells[source->owner];
@@ -343,6 +333,7 @@ double circuit::calc_density_factor(double unit) {
             }
         }
     }
+    //////////////////////////////// SLOW CALC in CTYPES //////
     int num_cells = 0;
     double totalArea = 0.0;
     double singleBinArea = 64 * rowHeight * rowHeight;
@@ -392,7 +383,7 @@ double circuit::calc_density_factor(double unit) {
         theCell->dense_factor += theBin->m_util / (theBin->free_space - theBin->f_util);
         theCell->binId = UINT_MAX;
     }
-    //cout << totalOverflow * singleBinArea * (max_utilization/100) / totalMovableArea << endl;
+
     return totalOverflow * singleBinArea * (max_utilization / 100) / totalMovableArea;
 }
 
@@ -617,12 +608,8 @@ pair<bool, pair<int, int> > circuit::bin_search(int x_pos, cell *theCell, int x,
 
     // If even number multi-deck cell -> check top power
     if (y_step % 2 == 0) {
-        if (rows[y].top_power == theMacro->top_power) {
-            //cout << "y: " << y << " rows[y].stepY: " << rows[y].origY << " - " << rows[y].top_power << endl;
-            //cout << "cell y: " << theCell->init_y_coord << endl;
-            //exit(1);
+        if (rows[y].top_power == theMacro->top_power)
             return make_pair(false, pos);
-        }
     }
 
 #ifdef DEBUG
@@ -672,20 +659,18 @@ pair<bool, pair<int, int> > circuit::bin_search(int x_pos, cell *theCell, int x,
         }
     } else if (x_pos < x) {
         for (int i = 0; i < 10; i++) {
-
-            // check all grids are empty
             bool available = true;
             if (x + i + x_step > (int) (die.xUR / wsite)) {
                 available = false;
             } else {
                 for (int k = y; k < y + y_step; k++) {
                     for (int l = x + i; l < x + i + x_step; l++) {
-                        if (grid[k][l].linked_cell != NULL || grid[k][l].isValid == false) {
+                        if (grid[k][l].linked_cell != NULL || !grid[k][l].isValid) {
                             available = false;
                             break;
                         }
                         // check group regions
-                        if (theCell->inGroup == true) {
+                        if (theCell->inGroup) {
                             if (grid[k][l].group != group2id[theCell->group])
                                 available = false;
                         } else {
@@ -693,31 +678,21 @@ pair<bool, pair<int, int> > circuit::bin_search(int x_pos, cell *theCell, int x,
                                 available = false;
                         }
                     }
-                    if (available == false)
-                        break;
+                    if (!available) break;
                 }
             }
-            if (available == true) {
-#ifdef DEBUG
-                cout << " found pos x - y : " << x << " - " << y << " Finish Search " << endl;
-                cout << " - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
-#endif
-                if (edge_left == 0)
-                    pos = make_pair(y, x + i);
-                else
-                    pos = make_pair(y, x + i + edge_left);
-
+            if (available) {
+                pos = make_pair(y, x + i + edge_left);
                 return make_pair(available, pos);
             }
         }
     } else {
+        //////////////////////////// ADDED ALGORITHM WITH SIGNFACTOR //////
         for (int i = 0; i < 10; i++) {
             int signFactor;
             for (int j = 0; j < 2; ++j) {
-                if (j == 0)
-                    signFactor = 1;
-                else
-                    signFactor = -1;
+                if (j == 0) signFactor = 1;
+                else signFactor = -1;
 
                 // check all grids are empty
                 bool available = true;
@@ -746,7 +721,7 @@ pair<bool, pair<int, int> > circuit::bin_search(int x_pos, cell *theCell, int x,
                 if (available == true) {
 #ifdef DEBUG
                     cout << " found pos x - y : " << x << " - " << y << " Finish Search " << endl;
-                cout << " - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
+                    cout << " - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
 #endif
                     if (edge_left == 0)
                         pos = make_pair(y, x + i * signFactor);
@@ -755,9 +730,7 @@ pair<bool, pair<int, int> > circuit::bin_search(int x_pos, cell *theCell, int x,
 
                     return make_pair(available, pos);
                 }
-
             }
-
         }
     }
     return make_pair(false, pos);
@@ -768,11 +741,12 @@ pair<bool, pixel *> circuit::diamond_search(cell *theCell, int x_coord, int y_co
     pair<bool, pair<int, int> > found;
     int x_pos = (int) floor(x_coord / wsite + 0.5);
     int y_pos = (int) floor(y_coord / rowHeight + 0.5);
-    //cout << x_pos << " " << y_pos << endl;
+
     int x_start = 0;
     int x_end = 0;
     int y_start = 0;
     int y_end = 0;
+
 
     // set search boundary max / min
     if (theCell->inGroup == true) {
@@ -805,27 +779,7 @@ pair<bool, pixel *> circuit::diamond_search(cell *theCell, int x_coord, int y_co
     cout << " x bound ( " << x_start << ") - (" << x_end << ")" << endl;
     cout << " y bound ( " << y_start << ") - (" << y_end << ")" << endl;
 #endif
-///////////////
-//if(max(x_start, x_pos) != x_pos) {
-//    cout << "xstart: " << x_start << ", x_pos: " << x_pos << endl;
-//    exit(1);
-//}
-//if(min(x_end,max(x_start,x_pos)) != x_pos){
-//    cout << "[ERR] why min(x_end, max(x_start, x_pos)) is not x_pos?!" << endl;
-//    cout << "x_end: " << x_end << ", x_start: " << x_start << ", x_pos: " << x_pos << endl;
-//    cout << "min(x_end, max(x_start, x_pos)): " << min(x_end, max(x_start, x_pos)) << endl;
-//    cout << "disp*5: " << (int)(displacement*5) << endl;
-//    cout << "rx - cellwidth: " << (int)floor(rx/wsite) - (int)floor(theCell->width/wsite+0.5) << endl;
-//    exit(1);
-//}
-///////////
     found = bin_search(x_pos, theCell, min(x_end, max(x_start, x_pos)), max(y_start, min(y_end, y_pos)));
-    //found = bin_search(x_pos,theCell,min(x_end,max(x_pos,0)),max(y_start,min(y_end,y_pos)));
-    if (x_pos > 0 && x_start > x_pos) {
-        cout << "xpos: " << x_pos << endl;
-        cout << "xstart: " << x_start << endl;
-        cout << theCell->inGroup << endl;
-    }
     if (found.first == true) {
         myPixel = &grid[found.second.first][found.second.second];
         return make_pair(found.first, myPixel);
@@ -939,7 +893,7 @@ bool circuit::direct_move(cell *theCell, int x_coord, int y_coord) {
 
 
 bool circuit::shift_move(cell *theCell, int x, int y) {
-    //	cout << " shift_move start " << endl;
+//	cout << " shift_move start " << endl;
 
     // set resgion boundary
     rect theRect;
@@ -948,8 +902,10 @@ bool circuit::shift_move(cell *theCell, int x, int y) {
     theRect.yLL = max(die.yLL, y - theCell->height * 3);
     theRect.yUR = min(die.yUR, y + theCell->height * 3);
 
-    vector<cell *> overlap_region_cells = get_cells_from_boundary(&theRect);
-
+    //vector<cell*> overlap_region_cells = get_cells_from_boundary(&theRect);
+    //overlap_region_cells.clear();
+    //vector<cell*>().swap(overlap_region_cells);
+    overlap_region_cells = get_cells_from_boundary(&theRect);
 
     // erase region cells
     for (int i = 0; i < overlap_region_cells.size(); i++) {
@@ -1033,7 +989,21 @@ bool circuit::map_move(cell *theCell, int x, int y) {
         //}
         //else
         paint_pixel(theCell, myPixel.second->x_pos, myPixel.second->y_pos);
+
+        /********/
+        double X = abs(theCell->init_x_coord - theCell->x_coord);
+        double Y = abs(theCell->init_y_coord - theCell->y_coord);
+        double DISP = X + Y;
+
+        // reward option (1): -disp
+        //REWARD = -1.0 * DISP;
+
+        // reward option (2): k/disp
+        if (DISP < 200) DISP = 200.0;
+        REWARD += 200.0 / (DISP);
+        /********/
         return true;
+
     } else {
 #ifdef DEBUG
         cout << " Map move fail !!" << endl;
@@ -1068,7 +1038,7 @@ vector<cell *> circuit::overlap_cells(cell *theCell) {
     return list;
 }
 
-// rect should be position 
+// rect should be position
 vector<cell *> circuit::get_cells_from_boundary(rect *theRect) {
 
     assert(theRect->xLL >= die.xLL);
@@ -1179,11 +1149,6 @@ bool circuit::refine_move(cell *theCell, int x_coord, int y_coord) {
         return false;
 }
 
-pixel *circuit::get_pixel(int x_pos, int y_pos) {
-
-
-}
-
 pair<bool, cell *> circuit::nearest_cell(int x_coord, int y_coord) {
     bool found = false;
     cell *nearest_cell = NULL;
@@ -1204,3 +1169,177 @@ pair<bool, cell *> circuit::nearest_cell(int x_coord, int y_coord) {
     }
     return make_pair(found, nearest_cell);
 }
+
+void circuit::avg_min2_search_distance() {
+    rect designRect;
+    designRect.xLL = lx;
+    designRect.yLL = by;
+    designRect.xUR = rx;
+    designRect.yUR = ty;
+
+    for (int i = 0; i < (int) cells.size(); i++) {
+        cell *theCell = &cells[i];
+        if (theCell->inGroup || theCell->isPlaced || theCell->isFixed) continue;
+
+        pair<double, double> coord;
+        pair<double, double> left;
+        pair<double, double> right;
+        pair<double, double> lower;
+        pair<double, double> upper;
+
+        vector<double> dists;
+
+        for (int j = 0; j < (int) groups.size(); j++) {
+            group *theGroup = &groups[j];
+            for (int k = 0; k < (int) theGroup->regions.size(); k++) {
+                rect *theRect = &theGroup->regions[k];
+                coord = nearest_coord_to_rect_boundary(theCell, theRect, "coord");
+                double dist =
+                        abs((double) theCell->x_coord - coord.first) + abs((double) theCell->y_coord - coord.second);
+                dists.push_back(dist);
+            }
+        }
+        for (int j = 0; j < num_fixed_nodes; j++) {
+            rect *theRect = &fixedCells[j];
+            coord = nearest_coord_to_rect_boundary(theCell, theRect, "coord");
+            if (theRect->xLL < theCell->x_coord && theRect->xUR > theCell->x_coord + theCell->width &&
+                theRect->yLL < theCell->y_coord && theRect->yUR > theCell->y_coord + theCell->width) {
+                double dist = 0.0;
+                dists.push_back(dist);
+            } else {
+                double dist =
+                        abs((double) theCell->x_coord - coord.first) + abs((double) theCell->y_coord - coord.second);
+                dists.push_back(dist);
+            }
+        }
+
+        //coord = nearest_coord_to_rect_boundary(theCell, &designRect, "coord");
+        //double dist  = abs((double)theCell->x_coord - coord.first) + abs((double)theCell->y_coord - coord.second);
+        double dist = 0.0;
+        dist = ty - (theCell->y_coord + theCell->height);
+        dists.push_back(dist);
+        dist = (theCell->y_coord) - by;
+        dists.push_back(dist);
+        dist = rx - (theCell->x_coord + theCell->width);
+        dists.push_back(dist);
+        dist = theCell->x_coord - lx;
+        dists.push_back(dist);
+
+        sort(dists.begin(), dists.end());
+
+        double avg2Dist = (dists[0] + dists[1]) / 2.0;
+        theCell->min2SrchDist = avg2Dist;
+    }
+}
+
+
+void clear_agent(circuit *ck, Agent *agent) {
+    agent->state.cell_list.clear();
+    vector<cell *>().swap(agent->state.cell_list);
+    for (auto it = agent->state.features.begin(); it != agent->state.features.end(); it++) {
+        (*it).clear();
+        vector<double>().swap(*it);
+    }
+    agent->state.features.clear();
+    vector<vector<double>>().swap(agent->state.features);
+    agent->effCells.clear();
+    vector<int>().swap(agent->effCells);
+    agent->tarCell = nullptr;
+    agent->moveFailCnt = 0;
+    agent->Pov = 0;
+
+    cout << "Gcell Reset!" << endl;
+}
+
+void clear_memory(circuit *ck, Agent *agent) {
+    agent->state.cell_list.clear();
+    vector<cell *>().swap(agent->state.cell_list);
+    for (auto it = agent->state.features.begin(); it != agent->state.features.end(); it++) {
+        (*it).clear();
+        vector<double>().swap(*it);
+    }
+    agent->state.features.clear();
+    vector<vector<double>>().swap(agent->state.features);
+    agent->state.features.clear();
+    agent->effCells.clear();
+    vector<int>().swap(agent->effCells);
+    agent->tarCell = nullptr;
+    agent->moveFailCnt = 0;
+    agent->Pov = 0;
+
+    for (int i = 0; i < (int) ck->cells.size(); i++) {
+        cell *theCell = &(ck->cells[i]);
+        //if(theCell->isFixed) continue;
+        if (theCell->isFixed || theCell->inGroup) continue;      /// add inGroup continue for saving runtime
+        ck->erase_pixel(theCell);
+        theCell->isPlaced = false;
+        theCell->moveTry = false;
+        theCell->fieldId = UINT_MAX;
+        theCell->gcellId = UINT_MAX;
+        theCell->sindex = -1;
+
+        theCell->overlapNum = 0;
+
+        // initalize x,y-coord of cells to init-coord
+        if (theCell->init_x_coord < ck->lx) {
+            theCell->x_coord = ck->lx;
+        } else if (theCell->x_coord > ck->rx) {
+            cout << "[WARNING] The cell-" << theCell->id << " is out of x-range of design!" << endl;
+            theCell->x_coord = ck->rx;
+        } else {
+            theCell->x_coord = theCell->init_x_coord;
+        }
+        if (theCell->init_y_coord < ck->by) {
+            theCell->y_coord = ck->by;
+        } else if (theCell->init_y_coord > ck->ty) {
+            cout << "[WARNING] The cell-" << theCell->id << " is out of y-range of design!" << endl;
+            theCell->y_coord = ck->ty;
+        } else {
+            theCell->y_coord = theCell->init_y_coord;
+        }
+    }
+    ck->Rtree_clear();
+    ck->Gcells.clear();
+    ck->Fields.clear();
+
+
+    //cout << "Memory cleared!" << endl;
+    cout << "Episode Reset!" << endl;
+}
+
+void circuit::gcell_unit_calc(int avgCellNum) {
+
+    int cell_num = non_group_cell_cnt();
+    double total_FR = 0.0;
+    for (int i = 0; i < groups.size(); i++) {
+        group *theGroup = &groups[i];
+        for (int j = 0; j < theGroup->regions.size(); j++) {
+            rect *R = &theGroup->regions[j];
+            total_FR += (R->xUR - R->xLL) * (R->yUR - R->yLL);
+        }
+    }
+
+    double free_space = designArea - total_fArea - total_FR;
+    double cell_fs = (double) (free_space / cell_num);
+    double length = sqrt(avgCellNum * cell_fs);
+
+    length /= rowHeight;
+    length = round(length / field_unit) * (int) field_unit;
+
+    gcell_unit = length;
+}
+
+
+int circuit::non_group_cell_cnt() {
+
+    int cell_num = 0;
+    double cell_area = 0;
+    for (auto theCell: cells) {
+        if (theCell.inGroup || theCell.isPlaced || theCell.isFixed) continue;
+        cell_area += theCell.width * theCell.height;
+        cell_num++;
+    }
+    return cell_num;
+}
+
+

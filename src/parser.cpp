@@ -67,14 +67,15 @@ void circuit::read_files(int argc, char *argv[]) {
 
     if (argc < 5) {
         print_usage();
+        cout << "[ERR] argc is less than 5 (" << argc << ")" << endl;
         exit(1);
     }
 
     for (int i = 1; i < argc; i++) {
         if (i + 1 != argc) {
-            if (strncmp(argv[i], "-tech_lef", 9) == 0)
+            if (strncmp(argv[i], "-tech_lef", 9) == 0) {
                 tech = argv[++i];
-            else if (strncmp(argv[i], "-cell_lef", 9) == 0)
+            } else if (strncmp(argv[i], "-cell_lef", 9) == 0)
                 cell_lef = argv[++i];
             else if (strncmp(argv[i], "-lef", 4) == 0)
                 lef = argv[++i];
@@ -101,6 +102,7 @@ void circuit::read_files(int argc, char *argv[]) {
 
     if (input_fail == true) {
         print_usage();
+        cout << "[ERR] input failed" << endl;
         exit(1);
     }
 
@@ -151,7 +153,6 @@ void circuit::read_files(int argc, char *argv[]) {
     if (constraints != NULL)
         cout << " constraints       : " << constraints_str.substr(lef_found + 1) << endl;
     cout << "-------------------------------------------------------------------" << endl;
-
     // read_def shuld after read_lef
     read_def(in_def_str, INIT);
     if (size != NULL) {
@@ -219,6 +220,13 @@ void circuit::calc_design_area_stats() {
     total_mArea = total_fArea = designArea = 0.0;
     for (vector<cell>::iterator theCell = cells.begin(); theCell != cells.end(); ++theCell) {
         if (theCell->isFixed) {
+            rect theRect;
+            theRect.xLL = (double) theCell->init_x_coord;
+            theRect.yLL = (double) theCell->init_y_coord;
+            theRect.xUR = (double) theCell->init_x_coord + theCell->width;
+            theRect.yUR = (double) theCell->init_y_coord + theCell->height;
+            fixedCells.push_back(theRect);
+
             total_fArea += theCell->width * theCell->height;
             num_fixed_nodes++;
         } else
@@ -232,9 +240,13 @@ void circuit::calc_design_area_stats() {
     for (int i = 0; i < cells.size(); i++) {
         cell *theCell = &cells[i];
         macro *theMacro = &macros[theCell->type];
-        if (theMacro->isMulti == true) {
+        if (theCell->height > rowHeight) {
+            theMacro->isMulti = true;
             multi_num++;
         }
+        //if( theMacro->isMulti == true ) {
+        //    multi_num++;
+        //}
     }
 
     for (int i = 0; i < cells.size(); i++) {
@@ -293,7 +305,6 @@ void circuit::read_constraints(const string &input) {
             string temp = context.substr(0, context.find_last_of("rows"));
             string max_move = temp.substr(temp.find_last_of("=") + 1);
             displacement = atoi(max_move.c_str()) * 20;
-            //cout << "disp : " << displacement << endl;
             max_disp_const = atoi(max_move.c_str());
 
         } else {
@@ -531,6 +542,11 @@ void circuit::read_def_size(const string &input) {
 
         theMacro->top_power = VDD;
 
+        //if(theCell->height > rowHeight) {
+        //    theMacro->isMulti = true;
+        //    cout << "This cell is multi!" << endl;
+        //    exit(1);
+        //}
         if (atof(tokens[2].c_str()) > 1) {
             theMacro->isMulti = true;
             //cout << " multi cell height : " << theMacro->height * LEFdist2Microns / rowHeight << endl;
@@ -658,7 +674,7 @@ void circuit::read_final_def_components(ifstream &is) {
 }
 
 // assumes the PINS keyword has already been read in
-// we already read pins from .verilog, 
+// we already read pins from .verilog,
 // thus this update locations / performs sanity checks
 void circuit::read_def_pins(ifstream &is) {
     pin *myPin = NULL;
@@ -782,7 +798,7 @@ void circuit::read_def_special_nets(ifstream &is) {
 }
 
 // assumes the NETS keyword has already been read in
-// we already read nets from .verilog, 
+// we already read nets from .verilog,
 // thus this only performs sanity checks
 void circuit::read_def_nets(ifstream &is) {
 #ifdef DEBUG
@@ -1164,13 +1180,12 @@ void circuit::read_cell_lef(const string &input) {
 }
 
 void circuit::read_tech_lef(const string &input) {
-//	cout << "  .lef file       : "<< input <<endl;
+    cout << "  .lef file       : " << input << endl;
     ifstream dot_lef(input.c_str());
     if (!dot_lef.good()) {
         cerr << "read_tech_lef:: cannot open `" << input << "' for reading." << endl;
         exit(1);
     }
-
     vector<string> tokens(1);
     while (!dot_lef.eof()) {
         get_next_token(dot_lef, tokens[0], LEFCommentChar);
@@ -1635,7 +1650,7 @@ void circuit::read_lef_macro(ifstream &is) {
     while (tokens[0] != "END") {
         if (tokens[0] == "PROPERTY") {
             get_next_n_tokens(is, tokens, 12, LEFCommentChar);
-            myMacro->edgetypeLeft = atoi(tokens[4].c_str()); // minimum spacing
+            myMacro->edgetypeLeft = atoi(tokens[4].c_str());
             myMacro->edgetypeRight = atoi(tokens[8].c_str());
             assert(tokens[1] == "\"");
             assert(tokens[11] == LEFLineEndingChar);

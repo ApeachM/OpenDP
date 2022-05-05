@@ -51,12 +51,21 @@
 #include <limits>
 #include <assert.h>
 #include <queue>
-#include <sparsehash/dense_hash_map>
 #include <omp.h>
-#include "mymeasure.h"
+#include <unistd.h>
+#include <deque>
+#include <sparsehash/dense_hash_map>
 
-#define INITSTR "SANGGIDO!@#!@#"
-using google::dense_hash_map;
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point.hpp>
+#include <boost/geometry/geometries/point_xy.hpp>
+#include <boost/geometry/geometries/box.hpp>
+#include <boost/geometry/geometries/polygon.hpp>
+#include <boost/geometry/index/rtree.hpp>
+#include <boost/foreach.hpp>
+
+#define INITSTR "CSDL!@#!@#"
+//#define masterckt circuit::inst()
 
 #define INIT false
 #define FINAL true
@@ -69,6 +78,7 @@ enum power {
     VDD, VSS
 };
 
+using google::dense_hash_map;
 using namespace std;
 template<class T> using max_heap = priority_queue<T>;
 
@@ -78,6 +88,8 @@ struct rect {
 
     rect() : xLL(numeric_limits<double>::max()), yLL(numeric_limits<double>::max()),
              xUR(numeric_limits<double>::min()), yUR(numeric_limits<double>::min()) {}
+
+    rect(double x1, double y1, double x2, double y2) : xLL(x1), yLL(y1), xUR(x2), yUR(y2) {}
 
     void dump() { printf("%f : %f - %f : %f\n", xLL, yLL, xUR, yUR); }
 };
@@ -188,7 +200,7 @@ struct macro {
     dense_hash_map<string, macro_pin> pins;
 
     vector<rect> obses;                        /* keyword OBS for non-rectangular shapes in micros */
-    power top_power;    // VDD = 0  VSS = 1 enum 
+    power top_power;    // VDD = 0  VSS = 1 enum
 
     macro() : name(""), type(""), isFlop(false), isMulti(false), xOrig(0.0), yOrig(0.0), width(0.0), height(0.0),
               edgetypeLeft(0), edgetypeRight(0) { pins.set_empty_key(INITSTR); }
@@ -242,14 +254,29 @@ struct cell {
 
     double dense_factor;
     int dense_factor_count;
+
     unsigned binId;
-    double disp;
+
+    unsigned fieldId;
+    unsigned gcellId;
+    vector<cell *> ovcells;
+
+    /* for RL feature */
+    bool moveTry;
+    int overlapNum;
+    double min2SrchDist;
+    //double  fieldDensity;
+
+    int sindex;
 
     cell() : name(""), type(UINT_MAX), id(UINT_MAX),
              x_coord(0), y_coord(0), init_x_coord(0), init_y_coord(0), x_pos(INT_MAX), y_pos(INT_MAX),
              width(0.0), height(0.0),
              isFixed(false), isPlaced(false), inGroup(false), hold(false), region(UINT_MAX), cellorient(""), group(""),
-             dense_factor(0.0), dense_factor_count(0), binId(UINT_MAX), disp(0.0) { ports.set_empty_key(INITSTR); }
+             dense_factor(0.0), dense_factor_count(0), binId(UINT_MAX), fieldId(UINT_MAX), gcellId(UINT_MAX),
+             moveTry(false), overlapNum(0), min2SrchDist(0.0), sindex(-1) {
+        ports.set_empty_key(INITSTR);
+    }
 
     void print();
 };
@@ -347,8 +374,36 @@ struct track {
     track() : axis(""), start(0), num_track(0), step(0) {}
 };
 
+struct field {
+    int id;
+    int pid;                    // for only Gcell -> position id
+    double xLL, yLL, xUR, yUR;     // updated in field|gcell_box_init
+    int fieldOverlap;           // updated in get_field|gcell_cells_n_overlapnum & field_overlapnum_update
+    //double  fieldDensity;           // updated in get_field_density
+    double fieldArea;              // updated in field|gcell_box_init & field_area_n_block_area
+    //double  blockArea;              // updated in field_area_n_block_area
+    double placedArea;
+    double cellArea;
+    vector<field *> subFields;     // for only Gcell -> fields' id
+    vector<cell *> fieldCells;
+
+    field() : id(-1), pid(-1), placedArea(0.0),
+              xLL(numeric_limits<double>::max()), yLL(numeric_limits<double>::max()),
+              xUR(numeric_limits<double>::max()), yUR(numeric_limits<double>::max()),
+              fieldOverlap(0), fieldArea(0.0), cellArea(0.0) {
+        subFields.clear();
+        fieldCells.clear();
+    }
+
+    void dump() { printf("%f : %f - %f : %f\n", xLL, yLL, xUR, yUR); }
+};
+
 class circuit {
+private:
+    //static circuit* instance;
 public:
+    //static circuit* inst();
+
     bool GROUP_IGNORE;
 
     void init_large_cell_stor();
@@ -427,6 +482,18 @@ public:
     vector<viaRule> viaRules;
     vector<group> groups;        /* group list from .def */
 
+    vector<cell *> overlap_region_cells;
+
+    // used for RTree
+    void *btw_cell_rtree;
+    void *cell_fg_rtree;
+    void *field_gcell_rtree;
+    void *field_rtree;
+
+    vector<rect> fixedCells;
+    vector<field> Fields;
+    vector<field> Gcells;
+
     vector<pair<double, cell *> > large_cell_stor;
 
     /* locateOrCreate helper functions - parser_helper.cpp */
@@ -486,10 +553,18 @@ public:
 
     void write_def(const string &output);
 
-    circuit() : GROUP_IGNORE(false), num_fixed_nodes(0), num_cpu(1),
+
+    double REWARD;
+    double field_unit;
+    double gcell_unit;
+
+
+    circuit() : REWARD(0.0), field_unit(5.0), gcell_unit(0.0), GROUP_IGNORE(false), num_fixed_nodes(0), num_cpu(1),
+                LEFVersion(""),
                 DEFVersion(""), DEFDelimiter("/"), DEFBusCharacters("[]"),
-                design_name(""), DEFdist2Microns(0), sum_displacement(0.0), displacement(400.0), max_disp_const(0.0),
-                max_utilization(100.0), wsite(0), max_cell_height(1) {
+                design_name(""), DEFdist2Microns(0), sum_displacement(0.0), displacement(400.0),
+                max_disp_const(0.0), max_utilization(100.0), wsite(0), max_cell_height(1),
+                btw_cell_rtree(nullptr), cell_fg_rtree(nullptr), field_gcell_rtree(nullptr), field_rtree(nullptr) {
         macros.reserve(128);
         layers.reserve(32);
         rows.reserve(4096);
@@ -503,6 +578,9 @@ public:
         layer2id.set_empty_key(INITSTR);  /* dense_hash_map between layer name and ID */
         via2id.set_empty_key(INITSTR);
         group2id.set_empty_key(INITSTR);          /* group between name -> index */
+        fixedCells.clear();
+        Gcells.reserve(81);
+        Fields.reserve(8100);
     };
 
     /* read files for legalizer - parser.cpp */
@@ -583,8 +661,14 @@ public:
 
     pair<bool, cell *> nearest_cell(int x_coord, int y_coord);
 
+    void gcell_unit_calc(int agvCellNum);
+
+    int non_group_cell_cnt();
+
     // place.cpp - By SGD
-    void simple_placement(CMeasure &measure);
+    void region_assign();
+
+    void simple_placement();
 
     void non_group_cell_pre_placement();
 
@@ -596,6 +680,12 @@ public:
 
     void group_cell_placement(string mode, string mode2);
 
+    //void simple_placement(int gcellid);
+    //void non_group_cell_pre_placement(int gcellid);
+    //void group_cell_pre_placement(int gcellid);
+    //void non_group_cell_placement(string mode);
+    //void group_cell_placement(string mode, int gcellid);
+    //void group_cell_placement(string mode, string mode2, int gcellid);
     void brick_placement_1(group *theGroup);
 
     void brick_placement_2(group *theGroup);
@@ -608,8 +698,7 @@ public:
 
     int non_group_refine();
 
-    void non_group_annealer();
-
+    //void brick_placement();
     // assign.cpp - By SGD
     void fixed_cell_assign();
 
@@ -647,8 +736,98 @@ public:
     void placed_check(ofstream &log);
 
     void overlap_check(ofstream &os);
+
+    // rl_place.cpp - By SYL
+    //void rl_non_group_cell_placement(string mode, Agent* agent);
+    //void rl_non_group_cell_placement(string mode);
+    //cell* get_target_cell(Action &action);
+    //cell* get_target_cell(int tarID);
+    vector<cell *> non_group_movable_cells(int gcellid);
+
+    // state_calc.cpp - By SYL
+    int overlap_num_calc(cell *thecell);
+
+    double cell_hpwl_calc(cell *theCell, string mode);
+
+    double reward_calc(int movefailcnt, int gcellid, int pov);
+
+    // rtree.cpp - By SHyP, SYL
+    void Rtree_init_gcells_n_fields();
+
+    void Rtree_init();
+
+    void Rtree_update(cell *tarCell, int moveType);
+
+    void Rtree_clear();
+
+    void field_box_init();//double fieldunit);
+    void gcell_box_init();//double unit);
+    void gcell_post_init();
+
+    void get_fields_in_gcells();
+
+    void get_ovcells(cell *theCell);
+
+    int get_field_id(cell *theCell);
+
+    void get_field_cells_n_overlapnum(int fieldId);
+
+    void field_overlapnum_update(int fieldId);
+
+    void get_gcell_cells(int gcellId); // for overlap penalty
+    void get_field_density(int fieldId, string mode);
+
+    void field_area_n_block_area(int fieldId);
+
+    // etc
+    void avg_min2_search_distance();
+
 };
 
+class State {
+private:
+public:
+    vector<cell *> cell_list;
+    vector<vector<double>> features;
+
+    State();
+
+    State(vector<cell *> cells);
+
+    ~State();
+};
+
+class Agent {
+private:
+public:
+    State state;
+    cell *tarCell;        // action cell
+    vector<int> effCells;       // cell index in state.cell_list
+    int moveFailCnt;    // for penalty
+    int targetGcell;    // gcellId
+    int Pov;
+
+    Agent();
+
+    ~Agent();
+
+    //string  state_init(vector<cell*> cells);
+    void state_init(circuit *ck, vector<cell *> cells, int gcellid);
+
+    bool is_done();
+
+    void step_init(vector<cell *> cells);
+
+    void feature_init(circuit *ckt);
+
+    int action(circuit *ck, int tarID); // return moveType
+    void feature_update(circuit *ck, int tarID, int moveType);
+};
+
+// Memory management at the end of episode // SYL
+void clear_agent(circuit *ck, Agent *agent);
+
+void clear_memory(circuit *ck, Agent *agent);
 
 // parser_helper.cpp
 bool is_special_char(char c);

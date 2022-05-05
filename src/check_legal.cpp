@@ -362,10 +362,6 @@ void circuit::placed_check(ofstream &log) {
         cell *theCell = &cells[i];
         if (theCell->isPlaced == false) {
             log << " placed_check fail ==> " << theCell->name << endl;
-            cout << "name : " << theCell->name << endl;
-            cout << "is placed : " << theCell->isPlaced << endl;
-            cout << "width / height : " << theCell->width << "/" << theCell->height << endl;
-            cout << "inGroup : " << theCell->inGroup << endl;
             valid = false;
             count++;
         }
