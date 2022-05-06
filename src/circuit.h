@@ -398,6 +398,18 @@ struct field {
     void dump() { printf("%f : %f - %f : %f\n", xLL, yLL, xUR, yUR); }
 };
 
+
+namespace bg = boost::geometry;
+namespace bgi = boost::geometry::index;
+
+typedef bg::model::point<double, 2, bg::cs::cartesian> point;
+typedef bg::model::box<point> box;
+typedef bg::model::polygon<bg::model::d2::point_xy<double>> polygon;
+
+typedef bgi::rtree<std::pair<box, cell *>, bgi::quadratic<6>> cellboxRtree;
+typedef bgi::rtree<std::pair<point, cell *>, bgi::quadratic<6>> cellpointRtree;
+typedef bgi::rtree<std::pair<box, field *>, bgi::quadratic<6>> fieldboxRtree;
+
 class circuit {
 private:
     //static circuit* instance;
@@ -485,10 +497,12 @@ public:
     vector<cell *> overlap_region_cells;
 
     // used for RTree
-    void *btw_cell_rtree;
-    void *cell_fg_rtree;
-    void *field_gcell_rtree;
-    void *field_rtree;
+    cellboxRtree *btw_cell_rtree;
+    cellboxRtree *btw_cell_rtree_initial;
+    cellpointRtree *cell_fg_rtree;
+    cellpointRtree *cell_fg_rtree_initial;
+    fieldboxRtree *field_gcell_rtree;
+    fieldboxRtree *field_rtree;
 
     vector<rect> fixedCells;
     vector<field> Fields;
