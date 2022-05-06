@@ -5,7 +5,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
 add_executable(OpenDP
-        src/main.cpp
+        src/main_virtual.cpp
         src/parser.cpp
         src/parser_helper.cpp
         src/agent.cpp
