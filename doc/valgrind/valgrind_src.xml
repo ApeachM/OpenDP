@@ -1,0 +1,411 @@
+<?xml version="1.0"?>
+
+<valgrindoutput>
+
+<protocolversion>4</protocolversion>
+<protocoltool>memcheck</protocoltool>
+
+<preamble>
+  <line>Memcheck, a memory error detector</line>
+  <line>Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.</line>
+  <line>Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info</line>
+  <line>Command: /home/minjae/Remote/OpenDP_copy/cmake-build-debug/OpenDP -tech_lef ../bench/benchmarks/des_perf_b_md1/tech.lef -cell_lef ../bench/benchmarks/des_perf_b_md1/cells_modified.lef -input_def ../bench/benchmarks/des_perf_b_md1/placed.def -cpu 1 -placement_constraints ../bench/benchmarks/des_perf_b_md1/placement.constraints -output_def ../output/des_perf_b_md1_2022-05-04_22:05:59.def</line>
+</preamble>
+
+<pid>66368</pid>
+<ppid>63035</ppid>
+<tool>memcheck</tool>
+
+<args>
+  <vargv>
+    <exe>/usr/bin/valgrind.bin</exe>
+    <arg>--tool=memcheck</arg>
+    <arg>--xml=yes</arg>
+    <arg>--xml-file=/tmp/clion-valgrind16203fad-4d5a-4e0a-b66b-d9e97e88950c/valgrind_output_%p</arg>
+    <arg>--gen-suppressions=all</arg>
+    <arg>--leak-check=full</arg>
+    <arg>--leak-resolution=med</arg>
+    <arg>--track-origins=yes</arg>
+    <arg>--vgdb=no</arg>
+  </vargv>
+  <argv>
+    <exe>/home/minjae/Remote/OpenDP_copy/cmake-build-debug/OpenDP</exe>
+    <arg>-tech_lef</arg>
+    <arg>../bench/benchmarks/des_perf_b_md1/tech.lef</arg>
+    <arg>-cell_lef</arg>
+    <arg>../bench/benchmarks/des_perf_b_md1/cells_modified.lef</arg>
+    <arg>-input_def</arg>
+    <arg>../bench/benchmarks/des_perf_b_md1/placed.def</arg>
+    <arg>-cpu</arg>
+    <arg>1</arg>
+    <arg>-placement_constraints</arg>
+    <arg>../bench/benchmarks/des_perf_b_md1/placement.constraints</arg>
+    <arg>-output_def</arg>
+    <arg>../output/des_perf_b_md1_2022-05-04_22:05:59.def</arg>
+  </argv>
+</args>
+
+<status>
+  <state>RUNNING</state>
+  <time>00:00:00:00.139 </time>
+</status>
+
+
+<status>
+  <state>FINISHED</state>
+  <time>00:05:34:40.317 </time>
+</status>
+
+<error>
+  <unique>0x0</unique>
+  <tid>1</tid>
+  <kind>Leak_PossiblyLost</kind>
+  <xwhat>
+    <text>216,008 bytes in 1 blocks are possibly lost in loss record 1 of 7</text>
+    <leakedbytes>216008</leakedbytes>
+    <leakedblocks>1</leakedblocks>
+  </xwhat>
+  <stack>
+    <frame>
+      <ip>0x483C583</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so</obj>
+      <fn>operator new[](unsigned long)</fn>
+    </frame>
+    <frame>
+      <ip>0x339DAC</ip>
+      <obj>/home/minjae/Remote/OpenDP_copy/cmake-build-debug/OpenDP</obj>
+      <fn>circuit::read_files(int, char**)</fn>
+      <dir>/home/minjae/Remote/OpenDP_copy/src</dir>
+      <file>parser.cpp</file>
+      <line>184</line>
+    </frame>
+    <frame>
+      <ip>0x3280D6</ip>
+      <obj>/home/minjae/Remote/OpenDP_copy/cmake-build-debug/OpenDP</obj>
+      <fn>ckt_read_files(circuit*, int, char**)</fn>
+      <dir>/home/minjae/Remote/OpenDP_copy/src</dir>
+      <file>main.cpp</file>
+      <line>56</line>
+    </frame>
+    <frame>
+      <ip>0x328875</ip>
+      <obj>/home/minjae/Remote/OpenDP_copy/cmake-build-debug/OpenDP</obj>
+      <fn>main</fn>
+      <dir>/home/minjae/Remote/OpenDP_copy/src</dir>
+      <file>main.cpp</file>
+      <line>196</line>
+    </frame>
+  </stack>
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: possible</skaux>
+    <sframe> <fun>_Znam</fun> </sframe>
+    <sframe> <fun>_ZN7circuit10read_filesEiPPc</fun> </sframe>
+    <sframe> <fun>_Z14ckt_read_filesP7circuitiPPc</fun> </sframe>
+    <sframe> <fun>main</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:_Znam
+   fun:_ZN7circuit10read_filesEiPPc
+   fun:_Z14ckt_read_filesP7circuitiPPc
+   fun:main
+}
+]]>
+    </rawtext>
+  </suppression>
+</error>
+
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: possible</skaux>
+    <sframe> <fun>_Znam</fun> </sframe>
+    <sframe> <fun>_ZN7circuit10read_filesEiPPc</fun> </sframe>
+    <sframe> <fun>_Z14ckt_read_filesP7circuitiPPc</fun> </sframe>
+    <sframe> <fun>main</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:_Znam
+   fun:_ZN7circuit10read_filesEiPPc
+   fun:_Z14ckt_read_filesP7circuitiPPc
+   fun:main
+}
+]]>
+    </rawtext>
+  </suppression>
+<error>
+  <unique>0x2</unique>
+  <tid>1</tid>
+  <kind>Leak_DefinitelyLost</kind>
+  <xwhat>
+    <text>375,352 (24 direct, 375,328 indirect) bytes in 1 blocks are definitely lost in loss record 3 of 7</text>
+    <leakedbytes>375352</leakedbytes>
+    <leakedblocks>1</leakedblocks>
+  </xwhat>
+  <stack>
+    <frame>
+      <ip>0x483BE63</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so</obj>
+      <fn>operator new(unsigned long)</fn>
+    </frame>
+    <frame>
+      <ip>0x391A31</ip>
+      <obj>/home/minjae/Remote/OpenDP_copy/cmake-build-debug/OpenDP</obj>
+      <fn>circuit::Rtree_init_gcells_n_fields()</fn>
+      <dir>/home/minjae/Remote/OpenDP_copy/src</dir>
+      <file>rtree.cpp</file>
+      <line>147</line>
+    </frame>
+    <frame>
+      <ip>0x328186</ip>
+      <obj>/home/minjae/Remote/OpenDP_copy/cmake-build-debug/OpenDP</obj>
+      <fn>ckt_rtree_init(circuit*)</fn>
+      <dir>/home/minjae/Remote/OpenDP_copy/src</dir>
+      <file>main.cpp</file>
+      <line>87</line>
+    </frame>
+    <frame>
+      <ip>0x3288C8</ip>
+      <obj>/home/minjae/Remote/OpenDP_copy/cmake-build-debug/OpenDP</obj>
+      <fn>main</fn>
+      <dir>/home/minjae/Remote/OpenDP_copy/src</dir>
+      <file>main.cpp</file>
+      <line>204</line>
+    </frame>
+  </stack>
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>_Znwm</fun> </sframe>
+    <sframe> <fun>_ZN7circuit26Rtree_init_gcells_n_fieldsEv</fun> </sframe>
+    <sframe> <fun>_Z14ckt_rtree_initP7circuit</fun> </sframe>
+    <sframe> <fun>main</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:_Znwm
+   fun:_ZN7circuit26Rtree_init_gcells_n_fieldsEv
+   fun:_Z14ckt_rtree_initP7circuit
+   fun:main
+}
+]]>
+    </rawtext>
+  </suppression>
+</error>
+
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>_Znwm</fun> </sframe>
+    <sframe> <fun>_ZN7circuit26Rtree_init_gcells_n_fieldsEv</fun> </sframe>
+    <sframe> <fun>_Z14ckt_rtree_initP7circuit</fun> </sframe>
+    <sframe> <fun>main</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:_Znwm
+   fun:_ZN7circuit26Rtree_init_gcells_n_fieldsEv
+   fun:_Z14ckt_rtree_initP7circuit
+   fun:main
+}
+]]>
+    </rawtext>
+  </suppression>
+<error>
+  <unique>0x3</unique>
+  <tid>1</tid>
+  <kind>Leak_DefinitelyLost</kind>
+  <xwhat>
+    <text>431,296 (24 direct, 431,272 indirect) bytes in 1 blocks are definitely lost in loss record 4 of 7</text>
+    <leakedbytes>431296</leakedbytes>
+    <leakedblocks>1</leakedblocks>
+  </xwhat>
+  <stack>
+    <frame>
+      <ip>0x483BE63</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so</obj>
+      <fn>operator new(unsigned long)</fn>
+    </frame>
+    <frame>
+      <ip>0x3919DB</ip>
+      <obj>/home/minjae/Remote/OpenDP_copy/cmake-build-debug/OpenDP</obj>
+      <fn>circuit::Rtree_init_gcells_n_fields()</fn>
+      <dir>/home/minjae/Remote/OpenDP_copy/src</dir>
+      <file>rtree.cpp</file>
+      <line>143</line>
+    </frame>
+    <frame>
+      <ip>0x328186</ip>
+      <obj>/home/minjae/Remote/OpenDP_copy/cmake-build-debug/OpenDP</obj>
+      <fn>ckt_rtree_init(circuit*)</fn>
+      <dir>/home/minjae/Remote/OpenDP_copy/src</dir>
+      <file>main.cpp</file>
+      <line>87</line>
+    </frame>
+    <frame>
+      <ip>0x3288C8</ip>
+      <obj>/home/minjae/Remote/OpenDP_copy/cmake-build-debug/OpenDP</obj>
+      <fn>main</fn>
+      <dir>/home/minjae/Remote/OpenDP_copy/src</dir>
+      <file>main.cpp</file>
+      <line>204</line>
+    </frame>
+  </stack>
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>_Znwm</fun> </sframe>
+    <sframe> <fun>_ZN7circuit26Rtree_init_gcells_n_fieldsEv</fun> </sframe>
+    <sframe> <fun>_Z14ckt_rtree_initP7circuit</fun> </sframe>
+    <sframe> <fun>main</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:_Znwm
+   fun:_ZN7circuit26Rtree_init_gcells_n_fieldsEv
+   fun:_Z14ckt_rtree_initP7circuit
+   fun:main
+}
+]]>
+    </rawtext>
+  </suppression>
+</error>
+
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>_Znwm</fun> </sframe>
+    <sframe> <fun>_ZN7circuit26Rtree_init_gcells_n_fieldsEv</fun> </sframe>
+    <sframe> <fun>_Z14ckt_rtree_initP7circuit</fun> </sframe>
+    <sframe> <fun>main</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:_Znwm
+   fun:_ZN7circuit26Rtree_init_gcells_n_fieldsEv
+   fun:_Z14ckt_rtree_initP7circuit
+   fun:main
+}
+]]>
+    </rawtext>
+  </suppression>
+<error>
+  <unique>0x6</unique>
+  <tid>1</tid>
+  <kind>Leak_DefinitelyLost</kind>
+  <xwhat>
+    <text>64,588,792 (2,400 direct, 64,586,392 indirect) bytes in 1 blocks are definitely lost in loss record 7 of 7</text>
+    <leakedbytes>64588792</leakedbytes>
+    <leakedblocks>1</leakedblocks>
+  </xwhat>
+  <stack>
+    <frame>
+      <ip>0x483C583</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so</obj>
+      <fn>operator new[](unsigned long)</fn>
+    </frame>
+    <frame>
+      <ip>0x339D3D</ip>
+      <obj>/home/minjae/Remote/OpenDP_copy/cmake-build-debug/OpenDP</obj>
+      <fn>circuit::read_files(int, char**)</fn>
+      <dir>/home/minjae/Remote/OpenDP_copy/src</dir>
+      <file>parser.cpp</file>
+      <line>182</line>
+    </frame>
+    <frame>
+      <ip>0x3280D6</ip>
+      <obj>/home/minjae/Remote/OpenDP_copy/cmake-build-debug/OpenDP</obj>
+      <fn>ckt_read_files(circuit*, int, char**)</fn>
+      <dir>/home/minjae/Remote/OpenDP_copy/src</dir>
+      <file>main.cpp</file>
+      <line>56</line>
+    </frame>
+    <frame>
+      <ip>0x328875</ip>
+      <obj>/home/minjae/Remote/OpenDP_copy/cmake-build-debug/OpenDP</obj>
+      <fn>main</fn>
+      <dir>/home/minjae/Remote/OpenDP_copy/src</dir>
+      <file>main.cpp</file>
+      <line>196</line>
+    </frame>
+  </stack>
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>_Znam</fun> </sframe>
+    <sframe> <fun>_ZN7circuit10read_filesEiPPc</fun> </sframe>
+    <sframe> <fun>_Z14ckt_read_filesP7circuitiPPc</fun> </sframe>
+    <sframe> <fun>main</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:_Znam
+   fun:_ZN7circuit10read_filesEiPPc
+   fun:_Z14ckt_read_filesP7circuitiPPc
+   fun:main
+}
+]]>
+    </rawtext>
+  </suppression>
+</error>
+
+  <suppression>
+    <sname>insert_a_suppression_name_here</sname>
+    <skind>Memcheck:Leak</skind>
+    <skaux>match-leak-kinds: definite</skaux>
+    <sframe> <fun>_Znam</fun> </sframe>
+    <sframe> <fun>_ZN7circuit10read_filesEiPPc</fun> </sframe>
+    <sframe> <fun>_Z14ckt_read_filesP7circuitiPPc</fun> </sframe>
+    <sframe> <fun>main</fun> </sframe>
+    <rawtext>
+<![CDATA[
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:_Znam
+   fun:_ZN7circuit10read_filesEiPPc
+   fun:_Z14ckt_read_filesP7circuitiPPc
+   fun:main
+}
+]]>
+    </rawtext>
+  </suppression>
+<errorcounts>
+</errorcounts>
+
+<suppcounts>
+</suppcounts>
+
+</valgrindoutput>
+
+
