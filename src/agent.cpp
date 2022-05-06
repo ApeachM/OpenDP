@@ -18,6 +18,8 @@ vector<cell *> circuit::non_group_movable_cells(int gcellid) {
     vector<cell *> cell_list;
     field *theGcell = &Gcells[gcellid];
 
+    cout << "theGcell-" << gcellid << " has fieldCells #: " << theGcell->fieldCells.size() << endl;
+
     for (int i = 0; i < theGcell->fieldCells.size(); i++) {
         cell *theCell = theGcell->fieldCells[i];
         if (theCell->isFixed || theCell->isPlaced || theCell->inGroup) continue;

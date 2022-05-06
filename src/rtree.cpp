@@ -18,8 +18,9 @@ typedef std::pair<point, cell *> ptValue;
 // Update Fields coordinate & area
 void circuit::field_box_init() {
     double unit = field_unit;
-
     double fieldUnit = unit * rowHeight;
+    cout << " field unit: " << fieldUnit << endl;
+    
     int x_fieldNum = (int) ceil((rx - lx) / fieldUnit);
     int y_fieldNum = (int) ceil((ty - by) / fieldUnit);
     int numField = x_fieldNum * y_fieldNum;
@@ -57,6 +58,7 @@ bool SortId(const cell *ca, const cell *cb) {
 void circuit::gcell_box_init() {
     double unit = gcell_unit;
     double gcellUnit = unit * rowHeight; // default unit=50.0
+    cout << " gcell unit: " << gcellUnit << endl;
     int x_gcellNum = (int) ceil((rx - lx) / gcellUnit);
     int y_gcellNum = (int) ceil((ty - by) / gcellUnit);
     int numGcells = x_gcellNum * y_gcellNum;
