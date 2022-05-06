@@ -189,7 +189,7 @@ int main(int argc, char *argv[]) {
      * Below main function is for virtual one of agent.py
      * */
     int featureNum = 9;
-    auto start_time = clock();
+    auto time_log = clock();
     vector<vector<double>> timeset;
 
     // env = RLegalizer()
@@ -199,11 +199,11 @@ int main(int argc, char *argv[]) {
     Agent *agent = agent_new();  // self.ag = self.ck.agent()
     ckt_simple_placement(ck);  // self.ck.place()
 
-    double pre_initial_time = double(clock() - start_time) / CLOCKS_PER_SEC;
-    auto time_log = clock();
 
     vector<double> pre_station;
-    pre_station.push_back(pre_initial_time);
+    pre_station.push_back(double(clock() - time_log) / CLOCKS_PER_SEC);
+    time_log = clock();
+
     timeset.push_back(pre_station);
 
 
