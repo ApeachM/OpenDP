@@ -36,7 +36,7 @@
 /////////////////////////////////////////////////////////////////////////////////
 
 #include "circuit.h"
-#include "measure.h"
+#include "time.h"
 
 using namespace std;
 
@@ -146,7 +146,7 @@ bool ckt_is_done(Agent *agent) {
 }
 
 int ckt_action(circuit *ck, Agent *agent, int tarID) {
-    cout << "[CTYPES] Action! Target cell index (id): " << tarID << endl;
+//    cout << "[CTYPES] Action! Target cell index (id): " << tarID << endl;
     return agent->action(ck, tarID);
 }
 
@@ -189,6 +189,8 @@ int main(int argc, char *argv[]) {
      * Below main function is for virtual one of agent.py
      * */
     int featureNum = 9;
+    auto start_time = clock();
+    vector<vector<double>> timeset;
 
     // env = RLegalizer()
     circuit *ck = ckt_new();  // self.obj = self.lib.ckt_new()
@@ -197,26 +199,30 @@ int main(int argc, char *argv[]) {
     Agent *agent = agent_new();  // self.ag = self.ck.agent()
     ckt_simple_placement(ck);  // self.ck.place()
 
+    double pre_initial_time = double(clock() - start_time) / CLOCKS_PER_SEC;
+    auto time_log = clock();
+
+    vector<double> pre_station;
+    pre_station.push_back(pre_initial_time);
+    timeset.push_back(pre_station);
+
+
     int max_train_ep = 3;
     for (int episode = 0; episode < max_train_ep; ++episode) {
+        vector<double> episode_times;
         // env.init()
         cout << "episode: " << episode << endl;
         ckt_rtree_init(ck);
+
+        episode_times.push_back(double(clock() - time_log) / CLOCKS_PER_SEC);
+        time_log = clock();
 
         // s = env.s_init(gcell) ->
         // self.ck.rl_init(self.ag, gcell)
         int gcell = 30;
         int cellNum = ckt_state_init(ck, agent, gcell);  // cellNum = self.lib.ckt_state_init(self.obj, agent, gcell)
-/*
-            for i in range(cellNum):
-                cell = []
-                for j in range(featureNum):
-                    f = circuit.f_get(self, agent, i, j)
-                    cell.append(f)
-                self.features.append(cell)
-            return self.features
-*/
 
+        // feature extraction
         vector<vector<double>> cellFeatures;
         for (int cellIdx = 0; cellIdx < cellNum; ++cellIdx) {
             vector<double> cellFeature;
@@ -228,6 +234,9 @@ int main(int argc, char *argv[]) {
             cellFeatures.push_back(cellFeature);
         }
 
+        episode_times.push_back(double(clock() - time_log) / CLOCKS_PER_SEC);
+        time_log = clock();
+
         // step
         for (auto & cellFeature : cellFeatures) {
             int targetID = cellFeature[0];
@@ -235,15 +244,39 @@ int main(int argc, char *argv[]) {
             ckt_feature_update(ck, agent, targetID, moveType);
             ckt_reward_calc(ck, agent);
         }
+        episode_times.push_back(double(clock() - time_log) / CLOCKS_PER_SEC);
+        time_log = clock();
 
         double gScore = ckt_agent_clear(ck, agent);
 
         // episode end
         ckt_memory_clear(ck, agent);
+        episode_times.push_back(double(clock() - time_log) / CLOCKS_PER_SEC);
+        time_log = clock();
+
+        timeset.push_back(episode_times);
     }
+    // print time set
+    cout << endl << endl;
+    for (int i = 0; i < timeset.size(); ++i) {
+        cout << "episode " << i << endl;
+        for (int j = 0; j < timeset[i].size(); ++j) {
+            if (timeset[i].size() == 1)
+                cout << "preinit: ";
+            else{
+                if (j == 0) { cout << "rtree initial: "; }
+                else if (j == 1) { cout << "feature extraction: "; }
+                else if (j == 2) { cout << "Do actions: "; }
+                else if (j == 3) { cout << "clearing: "; }
+            }
+            cout << timeset[i][j] << endl;
+
+        }
+        cout << endl;
+    }
+
     delete ck;
     delete agent;
     cout << "train finished." << endl;
-
 }
 //}
