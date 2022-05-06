@@ -207,7 +207,7 @@ int main(int argc, char *argv[]) {
     timeset.push_back(pre_station);
 
 
-    int max_train_ep = 3;
+    int max_train_ep = 10;
     for (int episode = 0; episode < max_train_ep; ++episode) {
         vector<double> episode_times;
         // env.init()
@@ -238,7 +238,7 @@ int main(int argc, char *argv[]) {
         time_log = clock();
 
         // step
-        for (auto & cellFeature : cellFeatures) {
+        for (auto &cellFeature: cellFeatures) {
             int targetID = cellFeature[0];
             int moveType = ckt_action(ck, agent, targetID);
             ckt_feature_update(ck, agent, targetID, moveType);
@@ -259,11 +259,11 @@ int main(int argc, char *argv[]) {
     // print time set
     cout << endl << endl;
     for (int i = 0; i < timeset.size(); ++i) {
-        cout << "episode " << i << endl;
+        cout << "episode " << i - 1 << endl;
         for (int j = 0; j < timeset[i].size(); ++j) {
             if (timeset[i].size() == 1)
                 cout << "preinit: ";
-            else{
+            else {
                 if (j == 0) { cout << "rtree initial: "; }
                 else if (j == 1) { cout << "feature extraction: "; }
                 else if (j == 2) { cout << "Do actions: "; }
