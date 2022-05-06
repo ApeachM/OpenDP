@@ -1280,6 +1280,9 @@ void clear_memory(circuit *ck, Agent *agent) {
 
         theCell->overlapNum = 0;
 
+        theCell->ovcells.clear();
+        vector<cell *>().swap(theCell->ovcells);
+
         // initalize x,y-coord of cells to init-coord
         if (theCell->init_x_coord < ck->lx) {
             theCell->x_coord = ck->lx;
@@ -1299,9 +1302,27 @@ void clear_memory(circuit *ck, Agent *agent) {
         }
     }
     ck->Rtree_clear();
-    ck->Gcells.clear();
-    ck->Fields.clear();
+    //ck->Gcells.clear();
+    //ck->Fields.clear();
 
+    for (auto it = ck->Fields.begin(); it != ck->Fields.end(); it++) {
+        it->fieldOverlap = 0;
+        it->placedArea = 0.0;
+        it->cellArea = 0.0;
+        it->fieldCells.clear();
+        vector<cell *>().swap(it->fieldCells);
+    }
+    //for(auto it=ck->Gcells.begin(); it!=ck->Gcells.end(); it++) {
+    //    for(int i=0; i<(int)it->fieldCells.size(); i++) {
+    //        cell* theCell = it->fieldCells[i];
+    //        if(theCell->inGroup || theCell->isFixed) continue;
+    //        ck->get_ovcells(theCell);
+    //    }
+    //    it->id = -1;
+    //    it->fieldCells.clear();
+    //    vector<cell*>().swap(it->fieldCells);
+    //    //it->subFields.clear();
+    //}
 
     //cout << "Memory cleared!" << endl;
     cout << "Episode Reset!" << endl;

@@ -4,13 +4,13 @@ namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 
 typedef bg::model::point<double, 2, bg::cs::cartesian> point;
-typedef bg::model::box<point> box;
-typedef bg::model::polygon<bg::model::d2::point_xy<double>> polygon;
+typedef bg::model::box <point> box;
+typedef bg::model::polygon <bg::model::d2::point_xy<double>> polygon;
 
 // RTrees
-typedef bgi::rtree<std::pair<box, cell *>, bgi::quadratic<6> > cellboxRtree;
-typedef bgi::rtree<std::pair<point, cell *>, bgi::quadratic<6> > cellpointRtree;
-typedef bgi::rtree<std::pair<box, field *>, bgi::quadratic<6> > fieldboxRtree;
+typedef bgi::rtree <std::pair<box, cell *>, bgi::quadratic<6>> cellboxRtree;
+typedef bgi::rtree <std::pair<point, cell *>, bgi::quadratic<6>> cellpointRtree;
+typedef bgi::rtree <std::pair<box, field *>, bgi::quadratic<6>> fieldboxRtree;
 
 typedef std::pair<box, cell *> boxValue;
 typedef std::pair<point, cell *> ptValue;
@@ -147,7 +147,7 @@ void circuit::Rtree_init_gcells_n_fields() {
     field_rtree = (void *) (new fieldboxRtree);
     auto *fRtree = (fieldboxRtree *) field_rtree;
 
-    for (auto & Field : Fields) {
+    for (auto &Field: Fields) {
         field *theField = &Field;
         box bfg(point(theField->xLL + 0.1, theField->yLL + 0.1),
                 point(theField->xUR - 0.1, theField->yUR - 0.1));
@@ -160,9 +160,9 @@ void circuit::Rtree_init_gcells_n_fields() {
 void circuit::get_fields_in_gcells() {
     auto *fgRtree = (fieldboxRtree *) field_gcell_rtree;
 
-    for (auto & Gcell : Gcells) {
+    for (auto &Gcell: Gcells) {
         field *theGcell = &Gcell;
-        vector<pair<box, field *>> fields;
+        vector <pair<box, field *>> fields;
         /// Use fgRtree
         box queryBox(point(theGcell->xLL, theGcell->yLL),
                      point(theGcell->xUR, theGcell->yUR));
@@ -231,11 +231,8 @@ void circuit::get_ovcells(cell *theCell) {
     theCell->ovcells.clear();
     //cell* theCell = &cells[cellId];
     cellboxRtree *ccRtree = (cellboxRtree *) btw_cell_rtree;
-    vector<pair<box, cell *>> ovcells;
+    vector <pair<box, cell *>> ovcells;
 
-//    box queryBox(point((double)theCell->x_coord, (double) theCell->y_coord),
-//    point((double) (theCell->x_coord + theCell->width),
-//          (double) (theCell->y_coord, theCell->y_coord + theCell->height)));
     box queryBox(point((double)theCell->x_coord, (double) theCell->y_coord),
     point((double) (theCell->x_coord + theCell->width),
           (double) (theCell->y_coord + theCell->height)));
@@ -252,7 +249,7 @@ void circuit::get_ovcells(cell *theCell) {
 // Get fieldId for the cell
 int circuit::get_field_id(cell *theCell) {
     fieldboxRtree *fRtree = (fieldboxRtree *) field_rtree;
-    vector<pair<box, field *>> fields;
+    vector <pair<box, field *>> fields;
 
     point queryPt((double) theCell->x_coord, (double) theCell->y_coord);
     fRtree->query(bgi::intersects(queryPt), back_inserter(fields));
@@ -276,7 +273,7 @@ void circuit::get_field_cells_n_overlapnum(int fieldId) {
     double placedArea = 0.0;
     int fov = 0;
 
-    vector<pair<point, cell *>> fieldcells;
+    vector <pair<point, cell *>> fieldcells;
     cellpointRtree *cfgRtree = (cellpointRtree *) cell_fg_rtree;
     field *theField = &Fields[fieldId];
 
@@ -315,7 +312,7 @@ void circuit::field_overlapnum_update(int fieldId) {
 
 // Get field cells (field->fieldCells) & cell-overlap-num (fieldOverlap)
 void circuit::get_gcell_cells(int gcellId) {
-    vector<pair<point, cell *>> gcellcells;
+    vector <pair<point, cell *>> gcellcells;
     auto *cfgRtree = (cellpointRtree *) cell_fg_rtree;
     field *theGcell = &Gcells[gcellId];
 
@@ -326,10 +323,23 @@ void circuit::get_gcell_cells(int gcellId) {
     for (auto cell: gcellcells) {
         cell.second->gcellId = gcellId;
         theGcell->fieldCells.push_back(cell.second);
+        if ((cell.second)->inGroup || (cell.second)->isFixed) continue;
         get_ovcells(cell.second);
     }
     sort(theGcell->fieldCells.begin(), theGcell->fieldCells.end(), SortId);
 }
+
+void circuit::get_cell_overlaps() {
+    for (int i = 0; i < (int) Gcells.size(); i++) {
+        field *theGcell = &Gcells[i];
+        for (int j = 0; j < (int) theGcell->fieldCells.size(); j++) {
+            cell *theCell = theGcell->fieldCells[j];
+            if (theCell->inGroup || theCell->isFixed) continue;
+            get_ovcells(theCell);
+        }
+    }
+}
+
 
 //pair<double, double> circuit::field_intersect_area_with_fr_or_block(int fieldId, string mode)
 void circuit::field_area_n_block_area(int fieldId) {
@@ -344,7 +354,7 @@ void circuit::field_area_n_block_area(int fieldId) {
     for (int i = 0; i < (int) groups.size(); i++) {
         group *theGroup = &groups[i];
         for (int j = 0; j < (int) theGroup->regions.size(); j++) {
-            deque<polygon> frOutput;
+            deque <polygon> frOutput;
             polygon poly;
             rect *R = &theGroup->regions[j];
             box b(point(R->xLL, R->yLL), point(R->xUR, R->yUR));
@@ -353,8 +363,8 @@ void circuit::field_area_n_block_area(int fieldId) {
             int num = 0;
 
             BOOST_FOREACH(polygon const &p, frOutput) {
-                            frArea += bg::area(p);
-                        }
+                frArea += bg::area(p);
+            }
             if (frOutput.size() > 1) {
                 cout << "[WARNING] Multiple intersection exists with a rect-region and field-area!" << endl;
                 cout << "frArea: " << frArea << endl;
@@ -366,16 +376,16 @@ void circuit::field_area_n_block_area(int fieldId) {
     for (int i = 0; i < (int) cells.size(); i++) {
         cell *theCell = &cells[i];
         if (macros[theCell->type].type == "BLOCK") {
-            deque<polygon> blkOutput;
+            deque <polygon> blkOutput;
             polygon poly;
             box b(point((double)theCell->x_coord, (double) theCell->y_coord), point(
-                    (double) (theCell->x_coord + theCell->width), (double) (theCell->y_coord + theCell->height)));
+            (double) (theCell->x_coord + theCell->width), (double) (theCell->y_coord + theCell->height)));
             bg::assign(poly, b);
             bg::intersection(fieldPoly, poly, blkOutput);
             int num = 0;
             BOOST_FOREACH(polygon const &p, blkOutput) {
-                            blockArea += bg::area(p);
-                        }
+                blockArea += bg::area(p);
+            }
         }
     }
 

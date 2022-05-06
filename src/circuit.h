@@ -775,6 +775,8 @@ public:
     void field_overlapnum_update(int fieldId);
 
     void get_gcell_cells(int gcellId); // for overlap penalty
+    void get_cell_overlaps();
+
     void get_field_density(int fieldId, string mode);
 
     void field_area_n_block_area(int fieldId);

@@ -36,7 +36,7 @@
 /////////////////////////////////////////////////////////////////////////////////
 
 #include "circuit.h"
-#include <time.h>
+#include "measure.h"
 
 using namespace std;
 
@@ -57,42 +57,41 @@ void ckt_read_files(circuit *ck, int argc, char *argv[]) {
     cout << "[CTYPES] Read files done!" << endl;
 }
 
-void ckt_region_assn(circuit *ck) {
-    ck->field_unit = 5.0;
-    ck->gcell_unit_calc(300);       // determine (ck->gcellUnit)
-    //ck->gcell_box_init();
-    //ck->field_box_init();
-    //
-    //cout << " Rtree initialized!" << endl;
-    //cout << "  - Gcells size: " << ck->Gcells.size() << endl;
-    //cout << "  - Fields size: " << ck->Fields.size() << endl;
-
-    //ck->Rtree_init_gcells_n_fields();
-    //ck->Rtree_init();
-    //ck->gcell_post_init();
-    //ck->get_fields_in_gcells();
-
+int ckt_region_assn(circuit *ck) {
     ck->region_assign();
     ck->avg_min2_search_distance();
 
-    //return (int)ck->Gcells.size();
-}
-
-int ckt_rtree_init(circuit *ck) {
-    //cout << "[CTYPES] Rtree init!" << endl;
-    //ck->gcell_box_init(ck->gcellUnit);
-    //ck->field_box_init(5.0);
+    ck->field_unit = 5.0;
+    ck->gcell_unit_calc(300);       // determine (ck->gcellUnit)
     ck->gcell_box_init();
     ck->field_box_init();
-    ck->Rtree_init_gcells_n_fields();
-    ck->Rtree_init();
-    ck->gcell_post_init();              // get Gcell cells & Gcell sorting by cell-size
-    ck->get_fields_in_gcells();
+
     cout << " Rtree initialized!" << endl;
     cout << "  - Gcells size: " << ck->Gcells.size() << endl;
     cout << "  - Fields size: " << ck->Fields.size() << endl;
 
+    ck->Rtree_init_gcells_n_fields();
+    ck->Rtree_init();
+    ck->gcell_post_init();
+    ck->get_fields_in_gcells();
+
     return (int) ck->Gcells.size();
+}
+
+void ckt_rtree_init(circuit *ck) {
+    //cout << "[CTYPES] Rtree init!" << endl;
+    //ck->gcell_box_init(ck->gcellUnit);
+    //ck->field_box_init(5.0);
+    ck->Rtree_init_gcells_n_fields();
+    ck->Rtree_init();
+    ck->get_cell_overlaps();
+    //ck->gcell_post_init();              // get Gcell cells & Gcell sorting by cell-size
+    //ck->get_fields_in_gcells();
+    //cout << " Rtree initialized!" << endl;
+    //cout << "  - Gcells size: " << ck->Gcells.size() << endl;
+    //cout << "  - Fields size: " << ck->Fields.size() << endl;
+
+    //return (int)ck->Gcells.size();
 }
 
 void ckt_simple_placement(circuit *ck)//, int gcellid)
@@ -201,6 +200,7 @@ int main(int argc, char *argv[]) {
     int max_train_ep = 3;
     for (int episode = 0; episode < max_train_ep; ++episode) {
         // env.init()
+        cout << "episode: " << episode << endl;
         ckt_rtree_init(ck);
 
         // s = env.s_init(gcell) ->
@@ -241,6 +241,8 @@ int main(int argc, char *argv[]) {
         // episode end
         ckt_memory_clear(ck, agent);
     }
+    delete ck;
+    delete agent;
     cout << "train finished." << endl;
 
 }
